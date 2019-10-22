@@ -124,7 +124,7 @@ def thermald_thread():
   setup_eon_fan()
 
   # prevent LEECO from undervoltage
-  BATT_PERC_OFF = 10 if LEON else 3
+  BATT_PERC_OFF = 40 if LEON else 3
 
   # now loop
   thermal_sock = messaging.pub_sock(service_list['thermal'].port)
