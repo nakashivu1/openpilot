@@ -23,6 +23,7 @@ class CarInterface(object):
     self.vEgo_prev = False
     self.turning_indicator_alert = False
     self.force_disable = True
+    self.lkas_button_on_prev = False
 
     # *** init the major players ***
     self.CS = CarState(CP)
@@ -287,10 +288,17 @@ class CarInterface(object):
       events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if self.CS.steer_error:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
-
+      
+    #enable/disable with cruise main button
     if ret.cruiseState.enabled and (not self.cruise_enabled_prev or ret.vEgo > self.CP.minEnableSpeed >= self.vEgo_prev):
       events.append(create_event('pcmEnable', [ET.ENABLE]))
     elif not ret.cruiseState.enabled:
+      events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
+      
+    #enable/disable with LKAS button
+#    if self.CS.lkas_button_on and not self.lkas_button_on_prev:
+#      events.append(create_event('pcmEnable', [ET.ENABLE]))
+    if not self.CS.lkas_button_on:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
 
     # disable on pedals rising edge or when brake is pressed and speed isn't zero
@@ -312,6 +320,7 @@ class CarInterface(object):
     self.gas_pressed_prev = ret.gasPressed
     self.brake_pressed_prev = ret.brakePressed
     self.cruise_enabled_prev = ret.cruiseState.enabled
+    self.lkas_button_on_prev = self.CS.lkas_button_on
     self.vEgo_prev = ret.vEgo
 
     return ret.as_reader()
