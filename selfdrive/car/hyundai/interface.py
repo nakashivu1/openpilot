@@ -298,8 +298,8 @@ class CarInterface(object):
     #enable/disable with LKAS button
 #    if self.CS.lkas_button_on and not self.lkas_button_on_prev:
 #      events.append(create_event('pcmEnable', [ET.ENABLE]))
-    if not self.CS.lkas_button_on:
-      events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
+#    if not self.CS.lkas_button_on:
+#      events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
 
     # disable on pedals rising edge or when brake is pressed and speed isn't zero
     #if (ret.gasPressed and not self.gas_pressed_prev) or \
