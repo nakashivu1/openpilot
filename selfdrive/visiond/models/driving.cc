@@ -123,7 +123,6 @@ ModelData model_eval_frame(ModelState* s, cl_command_queue q,
   poly_fit(model.left_lane.points, model.left_lane.stds, model.left_lane.poly);
   poly_fit(model.right_lane.points, model.right_lane.stds, model.right_lane.poly);
 
-  #BogGyver lane width noise tune
   poly_fix(model.left_lane.stds[0],model.left_lane.points[0],model.left_lane.poly);
   poly_fix(model.right_lane.stds[0],model.right_lane.points[0],model.right_lane.poly);
   poly_fix(model.path.stds[0],model.path.points[0],model.path.poly);
