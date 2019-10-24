@@ -23,7 +23,7 @@ class CarInterface(object):
     self.vEgo_prev = False
     self.turning_indicator_alert = False
     self.force_disable = True
-    self.lkas_button_on_prev = False
+#    self.lkas_button_on_prev = False
 
     # *** init the major players ***
     self.CS = CarState(CP)
@@ -320,7 +320,7 @@ class CarInterface(object):
     self.gas_pressed_prev = ret.gasPressed
     self.brake_pressed_prev = ret.brakePressed
     self.cruise_enabled_prev = ret.cruiseState.enabled
-    self.lkas_button_on_prev = self.CS.lkas_button_on
+#    self.lkas_button_on_prev = self.CS.lkas_button_on
     self.vEgo_prev = ret.vEgo
 
     return ret.as_reader()
