@@ -54,7 +54,7 @@ class CarInterface(object):
     ret.enableCruise = True  # stock acc
 
     ret.steerActuatorDelay = 0.1  # Default delay
-    ret.steerRateCost = 0.55
+    ret.steerRateCost = 0.50
     
     tire_stiffness_factor = 0.8
 
@@ -85,7 +85,7 @@ class CarInterface(object):
       ret.steerRatio = 14   #Spec
       tire_stiffness_factor = 0.682
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.15], [0.03]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.11], [0.02]]
       ret.minSteerSpeed = 31 * CV.MPH_TO_MS
       ret.minEnableSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
