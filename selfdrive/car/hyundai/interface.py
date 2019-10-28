@@ -79,13 +79,13 @@ class CarInterface(object):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
       ret.minSteerSpeed = 0.
     elif candidate == CAR.ELANTRA:
-      ret.lateralTuning.pid.kf = 0.00006
+      ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 1275. + STD_CARGO_KG
       ret.wheelbase = 2.7
       ret.steerRatio = 14   #Spec
       tire_stiffness_factor = 0.682
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.11], [0.02]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.10], [0.02]]
       ret.minSteerSpeed = 31 * CV.MPH_TO_MS
       ret.minEnableSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
