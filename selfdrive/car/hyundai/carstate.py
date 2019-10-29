@@ -98,6 +98,11 @@ def get_scc_parser(CP):
     # sig_name, sig_address, default
     ("CRUISE_LAMP_M", "EMS16", 0),
     ("CF_Lvr_CruiseSet", "LVR12", 0),
+    ("MainMode_ACC", "SCC11", 0),
+    ("VSetDis", "SCC11", 0),
+    ("SCCInfoDisplay", "SCC11", 0),
+    ("ACC_ObjDist", "SCC11", 0),
+    ("ACCMode", "SCC12", 1),
 
     ("CF_VSM_Prefill", "SCC12", 0),
     ("CF_VSM_DecCmdAct", "SCC12", 0),
@@ -125,6 +130,7 @@ def get_scc_parser(CP):
     # address, frequency
     ("EMS16", 50),
     ("LVR12", 50),
+    ("SCC11", 50),
     ("SCC12", 50),
   ]
 
