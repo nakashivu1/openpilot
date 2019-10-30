@@ -143,9 +143,12 @@ typedef struct UIScene {
   uint64_t v_cruise_update_ts;
   float v_ego;
   bool decel_for_model;
+  bool decel_for_turn;
 
   float speedlimit;
+  float speedlimitaheaddistance;
   bool speedlimit_valid;
+  bool speedlimitahead_valid;
   bool map_valid;
 
   float curvature;
@@ -175,7 +178,7 @@ typedef struct UIScene {
 
   uint64_t started_ts;
 
-
+  
   //BB CPU TEMP
   uint16_t maxCpuTemp;
   uint32_t maxBatTemp;
@@ -192,8 +195,7 @@ typedef struct UIScene {
   int cal_status;
   int cal_perc;
 
-  // Used to show gps planner status
-  //bool gps_planner_active;
+
 
   bool brakeLights;
   bool leftBlinker;
@@ -201,6 +203,7 @@ typedef struct UIScene {
   int blinker_blinkingrate;
 
   bool is_playing_alert;
+  // Used to show gps planner status
   bool gps_planner_active;
 } UIScene;
 
@@ -240,7 +243,7 @@ typedef struct UIState {
   int img_map;
   int img_brake;
   int img_speed;
-  
+
   void *ctx;
 
   void *thermal_sock_raw;
@@ -2185,11 +2188,10 @@ void handle_message(UIState *s, void *which) {
     if (fabs(qdata.output) < 1){
       s->scene.output_scale = qdata.output;
     }
-
-
+    
     s->scene.frontview = datad.rearViewCam;
 
-    s->scene.decel_for_model = datad.decelForModel;
+    s->scene.decel_for_model = datad.decelForModel; 
     s->scene.decel_for_turn = datad.decelForTurn;
     s->alert_sound_timeout = 1 * UI_FREQ;
 
@@ -2592,39 +2594,6 @@ static void ui_update(UIState *s) {
       // awake on any (old) activity
       set_awake(s, true);
     }
-
-    /*if (polls[9].revents) {
-      // gps socket
-
-      zmq_msg_t msg;
-      err = zmq_msg_init(&msg);
-      assert(err == 0);
-      err = zmq_msg_recv(&msg, s->gps_sock_raw, 0);
-      assert(err >= 0);
-
-      struct capn ctx;
-      capn_init_mem(&ctx, zmq_msg_data(&msg), zmq_msg_size(&msg), 0);
-
-      cereal_Event_ptr eventp;
-      eventp.p = capn_getp(capn_root(&ctx), 0, 1);
-      struct cereal_Event eventd;
-      cereal_read_Event(&eventd, eventp);
-
-      struct cereal_GpsLocationData datad;
-      cereal_read_GpsLocationData(&datad, eventd.gpsLocation);
-
-      s->scene.gpsAccuracy = datad.accuracy;
-
-      if (s->scene.gpsAccuracy > 100)
-      {
-        s->scene.gpsAccuracy = 99.99;
-      }
-      else if (s->scene.gpsAccuracy == 0)
-      {
-        s->scene.gpsAccuracy = 99.8;
-      }
-      zmq_msg_close(&msg);
-    }*/
 
     if (polls[plus_sock_num].revents) {
       // plus socket

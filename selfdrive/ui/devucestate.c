@@ -72,7 +72,7 @@ void toggleButtons() {
 int ds_getTXBytes() {
     char str[64];
     int fd = open("/sys/class/net/wlan0/statistics/tx_bytes", O_RDONLY);
-    int len = read(fd, str, 64);    
+    int len = read(fd, str, 64);
     close(fd);
     if(len>0) {
         char *ptr;
@@ -128,10 +128,10 @@ void ds_update(isStopped, isAwake) {
   ds.statePwr = ds_evt_read(ds.fdPwr);
   ds.stateVol = ds_evt_read(ds.fdVol);
 
-  if(isAwake && ds.stateVol==114) 
+  if(isAwake && ds.stateVol==114)
     toggleTether();
 
-  if(isAwake && ds.stateVol==115) 
+  if(isAwake && ds.stateVol==115)
     toggleLog();
 }
 
@@ -155,13 +155,13 @@ char *parseLogMessage(const char *js) {
   jsmn_parser parser;
   jsmn_init(&parser);
   int r = jsmn_parse(&parser, js, strlen(js), tokens, 64);
-  //for(i=1;i<r;i+=2) 
+  //for(i=1;i<r;i+=2)
   //  printf("tok %.*s\n", tokens[i].end-tokens[i].start, js+tokens[i].start);
   if(r>0) {
     int i;
     // find exception first
-    for(i=1;i<r;i+=2) 
-      if(_jsoneq(js, &tokens[i], "exc_info")) 
+    for(i=1;i<r;i+=2)
+      if(_jsoneq(js, &tokens[i], "exc_info"))
         return _jsonstring(js, &tokens[i+1]);
     // return msg, unless it's "running"
     for(i=1;i<r;i+=2)
@@ -181,5 +181,5 @@ char *parseLogMessage(const char *js) {
 unsigned long getCurrentDateIndex() {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
-  return (tm.tm_year+1900)*10000000000+(tm.tm_mon)*100000000+tm.tm_mday*1000000+tm.tm_hour*10000+tm.tm_min*100+tm.tm_sec;           
+  return (tm.tm_year+1900)*10000000000+(tm.tm_mon)*100000000+tm.tm_mday*1000000+tm.tm_hour*10000+tm.tm_min*100+tm.tm_sec;
 }
