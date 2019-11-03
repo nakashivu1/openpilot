@@ -9,7 +9,7 @@ from selfdrive.can.packer import CANPacker
 # Steer torque limits
 
 class SteerLimitParams:
-  STEER_MAX = 290   # 409 is the max, 255 is stock
+  STEER_MAX = 280   # 409 is the max, 255 is stock, 280 is max for elantra
   STEER_DELTA_UP = 2
   STEER_DELTA_DOWN = 5
   STEER_DRIVER_ALLOWANCE = 30
