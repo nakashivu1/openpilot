@@ -9,18 +9,17 @@ from selfdrive.can.packer import CANPacker
 # Steer torque limits
 
 class SteerLimitParams:
-  STEER_MAX = 408   # 409 is the max, 255 is stock
-  STEER_DELTA_UP = 4
+  STEER_MAX = 280   # 409 is the max, 255 is stock, 280 is max for elantra
+  STEER_DELTA_UP = 2
   STEER_DELTA_DOWN = 5
-  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_ALLOWANCE = 30
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
 
 def process_lane_visible(enabled, left_line, right_line, hud_alert):
-    
   # initialize to no line visible
   lane_visible = 1
-  
+
   if left_line and right_line or hud_alert:
     if enabled or hud_alert:
       lane_visible = 3

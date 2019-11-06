@@ -155,6 +155,7 @@ class CarState(object):
     # update prevs, update must run once per Loop
     self.prev_left_blinker_on = self.left_blinker_on
     self.prev_right_blinker_on = self.right_blinker_on
+    
     self.prev_left_blinker_flash = self.left_blinker_flash
     self.prev_right_blinker_flash = self.right_blinker_flash
 
@@ -168,7 +169,7 @@ class CarState(object):
     self.main_on = (cp.vl["SCC11"]["MainMode_ACC"] != 0) if self.has_scc else \
                                             cp.vl['EMS16']['CRUISE_LAMP_M']
     self.acc_active = (cp.vl["SCC12"]['ACCMode'] != 0) if self.has_scc else \
-                                      (cp.vl["LVR12"]['CF_Lvr_CruiseSet'] != 0)
+                                      cp.vl['EMS16']['CRUISE_LAMP_M']
     self.pcm_acc_status = int(self.acc_active)
 
     # calc best v_ego estimate, by averaging two opposite corners
@@ -215,12 +216,13 @@ class CarState(object):
 
     self.user_brake = 0
 
-    self.brake_pressed = cp.vl["TCS13"]['DriverBraking']
+    self.brake_pressed = 0
     self.brake_lights = bool(self.brake_pressed)
-    if (cp.vl["TCS13"]["DriverOverride"] == 0 and cp.vl["TCS13"]['ACC_REQ'] == 1):
-      self.pedal_gas = 0
-    else:
-      self.pedal_gas = cp.vl["EMS12"]['TPS']
+#    if (cp.vl["TCS13"]["DriverOverride"] == 0 and cp.vl["TCS13"]['ACC_REQ'] == 1):
+#      self.pedal_gas = 0
+#    else:
+#      self.pedal_gas = cp.vl["EMS12"]['TPS']
+    self.pedal_gas = 0
     self.car_gas = cp.vl["EMS12"]['TPS']
 
     # Gear Selecton - This is not compatible with all Kia/Hyundai's, But is the best way for those it is compatible with

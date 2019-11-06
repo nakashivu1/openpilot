@@ -92,9 +92,9 @@ CHECKSUM = {
 }
 
 FEATURES = {
-  "use_cluster_gears": [CAR.ELANTRA, CAR.KONA],         # Use Cluster for Gear Selection, rather than Transmission
-  "use_tcu_gears": [CAR.KIA_OPTIMA, CAR.KIA_OPTIMA_1],                    # Use TCU Message for Gear Selection
-  "non_scc": [CAR.IONIQ, CAR.KONA, CAR.KIA_FORTE, CAR.SANTA_FE_1],                          # Car without SCC
+  "use_cluster_gears": [CAR.KONA],         # Use Cluster for Gear Selection, rather than Transmission
+  "use_tcu_gears": [CAR.KIA_OPTIMA, CAR.ELANTRA, CAR.KIA_OPTIMA_1],     # Use TCU Message for Gear Selection
+  "non_scc": [CAR.IONIQ, CAR.ELANTRA, CAR.KONA, CAR.KIA_FORTE, CAR.SANTA_FE_1],      # Car without SCC
 }
 
 DBC = {
