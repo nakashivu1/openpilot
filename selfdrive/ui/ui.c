@@ -254,7 +254,7 @@ typedef struct UIState {
   void *livempc_sock_raw;
   void *plus_sock_raw;
   void *map_data_sock_raw;
-  //void *gps_sock_raw;
+  void *gps_sock_raw;
   void *carstate_sock_raw;
 
   void *uilayout_sock_raw;
@@ -539,7 +539,7 @@ static void ui_init(UIState *s) {
   s->radarstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8012");
   s->livempc_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8035");
   s->plus_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8037");
-  //s->gps_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8032");
+  s->gps_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8032");
   s->carstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8021");
 
 #ifdef SHOW_SPEEDLIMIT
