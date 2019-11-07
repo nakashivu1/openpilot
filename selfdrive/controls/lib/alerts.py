@@ -58,6 +58,13 @@ class Alert():
 
 
 ALERTS = [
+  Alert(
+      "turningIndicatorOn",
+      "TAKE CONTROL",
+      "Steer Unavailable while Turning",
+      AlertStatus.userPrompt, AlertSize.small,
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, 0., 0., 1.),
+
   # Miscellaneous alerts
   Alert(
       "enable",
@@ -215,9 +222,9 @@ ALERTS = [
 
   Alert(
       "belowSteerSpeed",
-      "TAKE CONTROL",
+      "Steer Unavailable Below 31 MPH",
       "Steer Unavailable Below ",
-      AlertStatus.userPrompt, AlertSize.mid,
+      AlertStatus.userPrompt, AlertSize.small,
       Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
 
   Alert(
@@ -445,7 +452,7 @@ ALERTS = [
       "TAKE CONTROL IMMEDIATELY",
       "Reverse Gear",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, 2.2, 3., 4.),
+      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, 2.2, 0., 4.),
 
   Alert(
       "cruiseDisabled",
