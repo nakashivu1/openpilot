@@ -510,8 +510,8 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
   rk = Ratekeeper(100, print_delay_threshold=None)
 
   # FIXME: offroad alerts should not be created with negative severity
-  connectivity_alert = params.get("Offroad_ConnectivityNeeded", encoding='utf8')
-  internet_needed = connectivity_alert is not None and json.loads(connectivity_alert.replace("'", "\""))["severity"] >= 0
+#  connectivity_alert = params.get("Offroad_ConnectivityNeeded", encoding='utf8')
+#  internet_needed = connectivity_alert is not None and json.loads(connectivity_alert.replace("'", "\""))["severity"] >= 0
 
   prof = Profiler(False)  # off by default
 
@@ -544,8 +544,8 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
       events.append(create_event('canError', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if not sounds_available:
       events.append(create_event('soundsUnavailable', [ET.NO_ENTRY, ET.PERMANENT]))
-    if internet_needed:
-      events.append(create_event('internetConnectivityNeeded', [ET.NO_ENTRY, ET.PERMANENT]))
+#    if internet_needed:
+#      events.append(create_event('internetConnectivityNeeded', [ET.NO_ENTRY, ET.PERMANENT]))
 
     # Only allow engagement with brake pressed when stopped behind another stopped car
     #if CS.brakePressed and sm['plan'].vTargetFuture >= STARTING_TARGET_SPEED and not CP.radarOffCan and CS.vEgo < 0.3:
