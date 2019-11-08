@@ -1,5 +1,6 @@
 from selfdrive.car import dbc_dict
 
+
 class CAR:
   ELANTRA = "HYUNDAI ELANTRA LIMITED ULTIMATE 2017"
   GENESIS = "HYUNDAI GENESIS 2018"
@@ -104,10 +105,10 @@ CHECKSUM = {
 }
 
 FEATURES = {
-  "use_cluster_gears": [CAR.ELANTRA, CAR.KONA, CAR.ELANTRA_GT_I30],     # Use Cluster for Gear Selection, rather than Transmission
-  "use_tcu_gears": [CAR.KIA_OPTIMA],                                    # Use TCU Message for Gear Selection
+  "use_cluster_gears": [CAR.KONA, CAR.ELANTRA_GT_I30],     # Use Cluster for Gear Selection, rather than Transmission
+  "use_tcu_gears": [CAR.ELANTRA, CAR.KIA_OPTIMA],                                    # Use TCU Message for Gear Selection
   "use_new_gears": [CAR.KIA_OPTIMA_H],                                  # Use TCU Message for Gear Selection
-  "non_scc": [CAR.IONIQ, CAR.KONA, CAR.KIA_FORTE, CAR.SANTA_FE_1],      # Car without SCC
+  "non_scc": [CAR.ELANTRA, CAR.IONIQ, CAR.KONA, CAR.KIA_FORTE, CAR.SANTA_FE_1],      # Car without SCC
 }
 
 DBC = {
@@ -127,4 +128,4 @@ DBC = {
   CAR.ELANTRA_GT_I30: dbc_dict('hyundai_kia_generic', None),
 }
 
-STEER_THRESHOLD = 100
+STEER_THRESHOLD = 300
