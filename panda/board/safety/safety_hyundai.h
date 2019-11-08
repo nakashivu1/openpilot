@@ -1,8 +1,8 @@
-const int HYUNDAI_MAX_STEER = 255;             // like stock
-const int HYUNDAI_MAX_RT_DELTA = 112;          // max delta torque allowed for real time checks
+const int HYUNDAI_MAX_STEER = 409;             // like stock
+const int HYUNDAI_MAX_RT_DELTA = 200;          // max delta torque allowed for real time checks
 const uint32_t HYUNDAI_RT_INTERVAL = 250000;    // 250ms between real time checks
-const int HYUNDAI_MAX_RATE_UP = 3;
-const int HYUNDAI_MAX_RATE_DOWN = 7;
+const int HYUNDAI_MAX_RATE_UP = 5;
+const int HYUNDAI_MAX_RATE_DOWN = 8;
 const int HYUNDAI_DRIVER_TORQUE_ALLOWANCE = 50;
 const int HYUNDAI_DRIVER_TORQUE_FACTOR = 2;
 
@@ -53,9 +53,9 @@ static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     hyundai_cruise_engaged_last = cruise_engaged;
   }
   // cruise control for car without SCC
-  if ((addr == 871) && (!hyundai_has_scc)) {
+  if ((addr == 608) && (!hyundai_has_scc)) {
     // first byte
-    int cruise_engaged = (GET_BYTES_04(to_push) & 0xFF);
+    int cruise_engaged = (GET_BYTES_04(to_push) >> 25) & 0x1;
     //if (cruise_engaged && !hyundai_cruise_engaged_last) {
       controls_allowed = 1;
     //}
@@ -185,6 +185,5 @@ const safety_hooks hyundai_hooks = {
   .rx = hyundai_rx_hook,
   .tx = hyundai_tx_hook,
   .tx_lin = nooutput_tx_lin_hook,
-  .ignition = default_ign_hook,
   .fwd = hyundai_fwd_hook,
 };
