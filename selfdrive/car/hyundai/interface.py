@@ -51,7 +51,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.steerActuatorDelay = 0.1  # Default delay
     ret.steerRateCost = 0.52
-    tire_stiffness_factor = 1.
+    tire_stiffness_factor = 0.7
 
     ret.minEnableSpeed = -1.   # enable is done by stock ACC, so ignore this
 
@@ -84,12 +84,12 @@ class CarInterface(CarInterfaceBase):
       ret.minSteerSpeed = 31 * CV.MPH_TO_MS
       ret.minEnableSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
-      ret.lateralTuning.pid.kf = 0.00010
+      ret.lateralTuning.pid.kf = 0.00012
       ret.mass = 2060. + STD_CARGO_KG
       ret.wheelbase = 3.01
-      ret.steerRatio = 12.069
+      ret.steerRatio = 12.2
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.24], [0.09]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.24], [0.08]]
       ret.minSteerSpeed = 49 * CV.KPH_TO_MS
       ret.minEnableSpeed = 54 * CV.KPH_TO_MS
     elif candidate in [CAR.GENESIS_G90, CAR.GENESIS_G80]:
@@ -278,7 +278,7 @@ class CarInterface(CarInterfaceBase):
     if self.CS.steer_error:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
 
-    if ret.cruiseState.enabled and not self.cruise_enabled_prev:
+    if ret.cruiseState.enabled and (not self.cruise_enabled_prev or ret.vEgo > self.CP.minEnableSpeed >= self.vEgo_prev):
       events.append(create_event('pcmEnable', [ET.ENABLE]))
     elif not ret.cruiseState.enabled:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
