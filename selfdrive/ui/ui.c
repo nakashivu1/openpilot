@@ -51,8 +51,8 @@
 #define ALERTSIZE_FULL 3
 
 #define UI_BUF_COUNT 4
-#define SHOW_SPEEDLIMIT 1
-#define DEBUG_TURN
+//#define SHOW_SPEEDLIMIT 1
+//#define DEBUG_TURN
 
 //#define DEBUG_FPS
 
