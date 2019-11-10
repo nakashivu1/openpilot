@@ -18,7 +18,7 @@ function launch {
 
     # Touch all files on release2 after checkout to prevent rebuild
     BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    if [[ "$BRANCH" == "release2" ]]; then
+    if [[ "$BRANCH" == "mad_6.6arnes" ]]; then
         touch **
     fi
 
