@@ -24,10 +24,7 @@
 #include "common/util.h"
 #include "common/swaglog.h"
 #include "common/mat.h"
-
-extern "C"{
 #include "common/glutil.h"
-}
 
 #include "common/touch.h"
 #include "common/framebuffer.h"
@@ -37,15 +34,10 @@ extern "C"{
 #include "common/params.h"
 
 #include "cereal/gen/c/log.capnp.h"
-
-extern "C"{
 #include "slplay.h"
-}
 
-#include "messaging.hpp"
-extern "C"{
 #include "devicestate.c"
-}
+
 #define STATUS_STOPPED 0
 #define STATUS_DISENGAGED 1
 #define STATUS_ENGAGED 2
@@ -252,21 +244,20 @@ typedef struct UIState {
   int img_brake;
   int img_speed;
 
-  // Sockets
+  void *ctx;
 
-  Context *ctx;
-  SubSocket *thermal_sock;
-  SubSocket *model_sock;
-  SubSocket *controlsstate_sock;
-  SubSocket *livecalibration_sock;
-  SubSocket *radarstate_sock;
-  SubSocket *livempc_sock;
-  SubSocket *plus_sock;
-  SubSocket *map_data_sock;
-  SubSocket *gps_sock;
-  SubSocket *carstate_sock;
-  SubSocket *uilayout_sock;
-  Poller * poller;
+  void *thermal_sock_raw;
+  void *model_sock_raw;
+  void *controlsstate_sock_raw;
+  void *livecalibration_sock_raw;
+  void *radarstate_sock_raw;
+  void *livempc_sock_raw;
+  void *plus_sock_raw;
+  void *map_data_sock_raw;
+  void *gps_sock_raw;
+  void *carstate_sock_raw;
+
+  void *uilayout_sock_raw;
 
   int plus_state;
 
@@ -295,11 +286,11 @@ typedef struct UIState {
   GLint line_pos_loc, line_color_loc;
   GLint line_transform_loc;
 
-  int rgb_width, rgb_height, rgb_stride;
+  unsigned int rgb_width, rgb_height, rgb_stride;
   size_t rgb_buf_len;
   mat4 rgb_transform;
 
-  int rgb_front_width, rgb_front_height, rgb_front_stride;
+  unsigned int rgb_front_width, rgb_front_height, rgb_front_stride;
   size_t rgb_front_buf_len;
 
   UIScene scene;
@@ -392,12 +383,12 @@ static void set_volume(UIState *s, int volume) {
   int volume_changed = system(volume_change_cmd);
 }
 
-volatile sig_atomic_t do_exit = 0;
+volatile int do_exit = 0;
 static void set_do_exit(int sig) {
   do_exit = 1;
 }
 
-static void read_param_bool(bool* param, const char* param_name) {
+static void read_param_bool(bool* param, char* param_name) {
   char *s;
   const int result = read_db_value(NULL, param_name, &s, NULL);
   if (result == 0) {
@@ -406,7 +397,7 @@ static void read_param_bool(bool* param, const char* param_name) {
   }
 }
 
-static void read_param_float(float* param, const char* param_name) {
+static void read_param_float(float* param, char* param_name) {
   char *s;
   const int result = read_db_value(NULL, param_name, &s, NULL);
   if (result == 0) {
@@ -415,7 +406,7 @@ static void read_param_float(float* param, const char* param_name) {
   }
 }
 
-static void read_param_bool_timeout(bool* param, const char* param_name, int* timeout) {
+static void read_param_bool_timeout(bool* param, char* param_name, int* timeout) {
   if (*timeout > 0){
     (*timeout)--;
   } else {
@@ -424,7 +415,7 @@ static void read_param_bool_timeout(bool* param, const char* param_name, int* ti
   }
 }
 
-static void read_param_float_timeout(float* param, const char* param_name, int* timeout) {
+static void read_param_float_timeout(float* param, char* param_name, int* timeout) {
   if (*timeout > 0){
     (*timeout)--;
   } else {
@@ -504,7 +495,7 @@ sound_file sound_table[] = {
   { cereal_CarControl_HUDControl_AudibleAlert_chimeEngage, "../assets/sounds/engaged.wav", false },
   { cereal_CarControl_HUDControl_AudibleAlert_chimeWarning1, "../assets/sounds/warning_1.wav", false },
   { cereal_CarControl_HUDControl_AudibleAlert_chimeWarning2, "../assets/sounds/warning_2.wav", false },
-  { cereal_CarControl_HUDControl_AudibleAlert_chimeWarningRepeat, "../assets/sounds/warning_repeat.wav", true },
+  { cereal_CarControl_HUDControl_AudibleAlert_chimeWarningRepeat, "../assets/sounds/warning_2.wav", true },
   { cereal_CarControl_HUDControl_AudibleAlert_chimeError, "../assets/sounds/error.wav", false },
   { cereal_CarControl_HUDControl_AudibleAlert_chimePrompt, "../assets/sounds/error.wav", false },
   { cereal_CarControl_HUDControl_AudibleAlert_none, NULL, false },
@@ -538,35 +529,21 @@ static void ui_init(UIState *s) {
   pthread_mutex_init(&s->lock, NULL);
   pthread_cond_init(&s->bg_cond, NULL);
 
-  
-  s->ctx = Context::create();
+  s->ctx = zmq_ctx_new();
 
-  s->thermal_sock = SubSocket::create(s->ctx, "thermal");
-  s->model_sock = SubSocket::create(s->ctx, "model");
-  s->controlsstate_sock = SubSocket::create(s->ctx, "controlsState");
-  s->uilayout_sock = SubSocket::create(s->ctx, "uiLayoutState");
-  s->livecalibration_sock = SubSocket::create(s->ctx, "liveCalibration");
-  s->radarstate_sock = SubSocket::create(s->ctx, "radarState");
-  s->livempc_sock = SubSocket::create(s->ctx, "liveMpc");
-  s->plus_sock = SubSocket::create(s->ctx, "plusFrame");
-  s->gps_sock = SubSocket::create(s->ctx, "gpsLocation");
-  s->carstate_sock = SubSocket::create(s->ctx, "carState");
-  
-  s->poller = Poller::create({
-                              s->thermal_sock,
-                              s->model_sock,
-                              s->controlsstate_sock,
-                              s->uilayout_sock,
-                              s->livecalibration_sock,
-                              s->radarstate_sock,
-                              s->livempc_sock,
-                              s->plus_sock,
-                              s->gps_sock,
-                              s->carstate_sock
-                             });
+  s->thermal_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8005");
+  s->model_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8009");
+  s->controlsstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8007");
+  s->uilayout_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8060");
+  s->livecalibration_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8019");
+  s->radarstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8012");
+  s->livempc_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8035");
+  s->plus_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8037");
+  s->gps_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8032");
+  s->carstate_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8021");
+
 #ifdef SHOW_SPEEDLIMIT
-  s->map_data_sock = SubSock::create(s->ctx, "liveMapData");
-  s->poller.registerSocket(s->map_data_sock);
+  s->map_data_sock_raw = sub_sock(s->ctx, "tcp://127.0.0.1:8065");
 #endif
 
   s->ipc_fd = -1;
@@ -725,10 +702,10 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
   s->rgb_front_buf_len = front_bufs.buf_len;
 
   s->rgb_transform = (mat4){{
-    2.0f/s->rgb_width, 0.0f, 0.0f, -1.0f,
-    0.0f, 2.0f/s->rgb_height, 0.0f, -1.0f,
-    0.0f, 0.0f, 1.0f, 0.0f,
-    0.0f, 0.0f, 0.0f, 1.0f,
+    2.0/s->rgb_width, 0.0, 0.0, -1.0,
+    0.0, 2.0/s->rgb_height, 0.0, -1.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0,
   }};
 
   read_param_float(&s->speed_lim_off, "SpeedLimitOffset");
@@ -891,8 +868,8 @@ static void update_track_data(UIState *s, bool is_mpc, track_vertices_data *pvd)
   bool started = false;
   float off = is_mpc?0.3:0.5;
   float lead_d = scene->lead_d_rel*2.;
-  float path_height = is_mpc?(lead_d>5.)?fmin(lead_d, 25.)-fmin(lead_d*0.35, 10.):20.
-                            :(lead_d>0.)?fmin(lead_d, 50.)-fmin(lead_d*0.35, 10.):49.;
+  float path_height = is_mpc?(lead_d>5.)?min(lead_d, 25.)-min(lead_d*0.35, 10.):20.
+                            :(lead_d>0.)?min(lead_d, 50.)-min(lead_d*0.35, 10.):49.;
   pvd->cnt = 0;
   // left side up
   for (int i=0; i<=path_height; i++) {
@@ -966,8 +943,8 @@ const UIScene *scene = &s->scene;
   bool started = false;
   float off = is_mpc?0.3:0.5;
   float lead_d = scene->lead_d_rel*2.;
-  float path_height = is_mpc?(lead_d>5.)?fmin(lead_d, 25.)-fmin(lead_d*0.35, 10.):20.
-                            :(lead_d>0.)?fmin(lead_d, 50.)-fmin(lead_d*0.35, 10.):49.;
+  float path_height = is_mpc?(lead_d>5.)?min(lead_d, 25.)-min(lead_d*0.35, 10.):20.
+                            :(lead_d>0.)?min(lead_d, 50.)-min(lead_d*0.35, 10.):49.;
   int vi = 0;
   for(int i = 0;i < pvd->cnt;i++) {
     if (pvd->v[i].x < 0 || pvd->v[i].y < 0) {
@@ -992,8 +969,8 @@ const UIScene *scene = &s->scene;
         nvgRGBA(0, 191, 255, 255), nvgRGBA(0, 95, 128, 50));
     } else {
       int torque_scale = (int)fabs(510*(float)s->scene.output_scale);
-      int red_lvl = fmin(255, torque_scale);
-      int green_lvl = fmin(255, 510-torque_scale);
+      int red_lvl = min(255, torque_scale);
+      int green_lvl = min(255, 510-torque_scale);
       track_bg = nvgLinearGradient(s->vg, vwp_w, vwp_h, vwp_w, vwp_h*.4,
         nvgRGBA(          red_lvl,            green_lvl,  0, 255),
         nvgRGBA((int)(0.5*red_lvl), (int)(0.5*green_lvl), 0, 50));
@@ -1081,14 +1058,14 @@ static void update_lane_line_data(UIState *s, const float *points, float off, bo
 
 static void update_all_lane_lines_data(UIState *s, const PathData path, model_path_vertices_data *pstart) {
   update_lane_line_data(s, path.points, 0.025*path.prob, false, pstart);
-  float var = fmin(path.std, 0.7);
+  float var = min(path.std, 0.7);
   update_lane_line_data(s, path.points, -var, true, pstart + 1);
   update_lane_line_data(s, path.points, var, true, pstart + 2);
 }
 
 static void ui_draw_lane(UIState *s, const PathData *path, model_path_vertices_data *pstart, NVGcolor color) {
   ui_draw_lane_line(s, pstart, color);
-  float var = fmin(path->std, 0.7);
+  float var = min(path->std, 0.7);
   color.a /= 4;
   ui_draw_lane_line(s, pstart + 1, color);
   ui_draw_lane_line(s, pstart + 2, color);
@@ -1148,7 +1125,7 @@ static void ui_draw_world(UIState *s) {
       if (scene->lead_v_rel < 0) {
         fillAlpha += 255*(-1*(scene->lead_v_rel/speedBuff));
       }
-      fillAlpha = (int)(fmin(fillAlpha, 255));
+      fillAlpha = (int)(min(fillAlpha, 255));
     }
     draw_chevron(s, scene->lead_d_rel+2.7, scene->lead_y_rel, 25,
                   nvgRGBA(201, 34, 49, fillAlpha), nvgRGBA(255, 255, 255, 255));
@@ -1255,7 +1232,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
       if(scene->gpsAccuracy > 1.0) {
          val_color = nvgRGBA(255, 188, 3, 200);
       }
-      if(scene->gpsAccuracy > 2.0) {
+      if(scene->gpsAccuracy > 1.5) {
          val_color = nvgRGBA(255, 0, 0, 200);
       }
 
@@ -1382,12 +1359,12 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     char val_str[16];
     char uom_str[6];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
-      //show Orange if more than 50 degrees
-      //show red if  more than 100 degrees
-      if(((int)(scene->angleSteers) < -50) || ((int)(scene->angleSteers) > 50)) {
+      //show Orange if more than 30 degrees
+      //show red if  more than 50 degrees
+      if(((int)(scene->angleSteers) < -30) || ((int)(scene->angleSteers) > 30)) {
         val_color = nvgRGBA(255, 188, 3, 200);
       }
-      if(((int)(scene->angleSteers) < -100) || ((int)(scene->angleSteers) > 100)) {
+      if(((int)(scene->angleSteers) < -50) || ((int)(scene->angleSteers) > 50)) {
         val_color = nvgRGBA(255, 0, 0, 200);
       }
       // steering is in degrees
@@ -1406,12 +1383,12 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     char val_str[16];
     char uom_str[6];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
-      //show Orange if more than 50 degrees
-      //show red if  more than 100 degrees
-      if(((int)(scene->angleSteersDes) < -50) || ((int)(scene->angleSteersDes) > 50)) {
+      //show Orange if more than 30 degrees
+      //show red if  more than 50 degrees
+      if(((int)(scene->angleSteersDes) < -30) || ((int)(scene->angleSteersDes) > 30)) {
         val_color = nvgRGBA(255, 188, 3, 200);
       }
-      if(((int)(scene->angleSteersDes) < -100) || ((int)(scene->angleSteersDes) > 100)) {
+      if(((int)(scene->angleSteersDes) < -50) || ((int)(scene->angleSteersDes) > 50)) {
         val_color = nvgRGBA(255, 0, 0, 200);
       }
       // steering is in degrees
@@ -1784,19 +1761,7 @@ static void ui_draw_vision_event(UIState *s) {
   const int viz_event_x = ((ui_viz_rx + ui_viz_rw) - (viz_event_w + (bdr_is*2)));
   const int viz_event_y = (box_y + (bdr_is*1.5));
   const int viz_event_h = (header_h - (bdr_is*1.5));
-  if (s->scene.speedlimitahead_valid && s->scene.speedlimitaheaddistance < 300 && s->scene.engaged && s->limit_set_speed) {
-    // draw speed sign
-    const int img_turn_size = 160;
-    const int img_turn_x = viz_event_x-(img_turn_size/4)+80;
-    const int img_turn_y = viz_event_y+bdr_is-25;
-    float img_turn_alpha = 1.0f;
-    nvgBeginPath(s->vg);
-    NVGpaint imgPaint = nvgImagePattern(s->vg, img_turn_x, img_turn_y,
-      img_turn_size, img_turn_size, 0, s->img_speed, img_turn_alpha);
-    nvgRect(s->vg, img_turn_x, img_turn_y, img_turn_size, img_turn_size);
-    nvgFillPaint(s->vg, imgPaint);
-    nvgFill(s->vg);
-  } else if ((s->scene.decel_for_turn && s->scene.engaged && s->limit_set_speed) || (s->scene.decel_for_model && s->scene.engaged)) {
+  if (s->scene.decel_for_model && s->scene.engaged) {
     // draw winding road sign
     const int img_turn_size = 160;
     const int img_turn_x = viz_event_x-(img_turn_size/4)+80;
@@ -1825,11 +1790,11 @@ static void ui_draw_vision_event(UIState *s) {
       nvgBeginPath(s->vg);
       nvgCircle(s->vg, bg_wheel_x, (bg_wheel_y + (bdr_is*1.5)), bg_wheel_size);
       if (is_engaged) {
-        nvgFillColor(s->vg, nvgRGBA(23, 134, 68, 255));
+        nvgFillColor(s->vg, nvgRGBA(23, 134, 68, 180));
       } else if (is_warning) {
-        nvgFillColor(s->vg, nvgRGBA(218, 111, 37, 255));
+        nvgFillColor(s->vg, nvgRGBA(218, 111, 37, 180));
       } else if (is_engageable) {
-        nvgFillColor(s->vg, nvgRGBA(23, 51, 73, 255));
+        nvgFillColor(s->vg, nvgRGBA(23, 51, 73, 180));
       }
       nvgFill(s->vg);
       img_wheel_alpha = 1.0f;
@@ -1962,7 +1927,7 @@ static void ui_draw_vision_footer(UIState *s) {
   ui_draw_vision_brake(s);
 
 #ifdef SHOW_SPEEDLIMIT
-  ui_draw_vision_map(s);
+  //ui_draw_vision_map(s);
 #endif
 }
 
@@ -2159,10 +2124,16 @@ static void update_status(UIState *s, int status) {
 }
 
 
-void handle_message(UIState *s, Message * msg) {
+void handle_message(UIState *s, void *which) {
+  int err;
+  zmq_msg_t msg;
+  err = zmq_msg_init(&msg);
+  assert(err == 0);
+  err = zmq_msg_recv(&msg, which, 0);
+  assert(err >= 0);
 
   struct capn ctx;
-  capn_init_mem(&ctx, (uint8_t*)msg->getData(), msg->getSize(), 0);
+  capn_init_mem(&ctx, zmq_msg_data(&msg), zmq_msg_size(&msg), 0);
 
   cereal_Event_ptr eventp;
   eventp.p = capn_getp(capn_root(&ctx), 0, 1);
@@ -2420,7 +2391,8 @@ void handle_message(UIState *s, Message * msg) {
       s->scene.gpsAccuracy = 99.8;
     }
   }
-  capn_free(&ctx); 
+  capn_free(&ctx);
+  zmq_msg_close(&msg);
 }
 
 static void ui_update(UIState *s) {
@@ -2497,7 +2469,7 @@ static void ui_update(UIState *s) {
     s->alert_blinked = false;
   }
 
-  zmq_pollitem_t polls[1] = {{0}};
+  zmq_pollitem_t polls[12] = {{0}};
   // Wait for next rgb image from visiond
   while(true) {
     assert(s->ipc_fd >= 0);
@@ -2558,32 +2530,85 @@ static void ui_update(UIState *s) {
   }
   // peek and consume all events in the zmq queue, then return.
   while(true) {
-    bool awake = false;
-    auto polls = s->poller->poll(0);
-    
-    if (polls.size() == 0)
-      return;
+    int plus_sock_num = 7;
+    int num_polls = 8;
 
-    for (auto sock : polls){
-      Message * msg = sock->receive();
-      if (sock != s->thermal_sock){
-        awake = true;
-      }
-      if (sock == s->plus_sock){
-        s->plus_state = msg->getData()[0];
-      } else {
-        handle_message(s, msg);
-      }
-      delete msg;
+    polls[0].socket = s->controlsstate_sock_raw;
+    polls[0].events = ZMQ_POLLIN;
+    polls[1].socket = s->livecalibration_sock_raw;
+    polls[1].events = ZMQ_POLLIN;
+    polls[2].socket = s->model_sock_raw;
+    polls[2].events = ZMQ_POLLIN;
+    polls[3].socket = s->radarstate_sock_raw;
+    polls[3].events = ZMQ_POLLIN;
+    polls[4].socket = s->livempc_sock_raw;
+    polls[4].events = ZMQ_POLLIN;
+    polls[5].socket = s->thermal_sock_raw;
+    polls[5].events = ZMQ_POLLIN;
+    polls[6].socket = s->uilayout_sock_raw;
+    polls[6].events = ZMQ_POLLIN;
+
+
+    if (s->vision_connected) {
+      num_polls++;
+      plus_sock_num++;
+      polls[7].socket = s->carstate_sock_raw;
+      polls[7].events = ZMQ_POLLIN;
+      num_polls++;
+      plus_sock_num++;
+      polls[8].socket = s->map_data_sock_raw;
+      polls[8].events = ZMQ_POLLIN;
+      num_polls++;
+      plus_sock_num++;
+      polls[9].socket = s->gps_sock_raw;
+      polls[9].events = ZMQ_POLLIN;
     }
 
-    if (awake){
+    polls[plus_sock_num].socket = s->plus_sock_raw; // plus_sock should be last
+    polls[plus_sock_num].events = ZMQ_POLLIN;
+
+    int ret = zmq_poll(polls, num_polls, 0);
+    if (ret < 0) {
+      LOGW("poll failed (%d)", ret);
+      return;
+    }
+    if (ret == 0) {
+      return;
+    }
+
+    if (polls[0].revents || polls[1].revents || polls[2].revents ||
+        polls[3].revents || polls[4].revents || polls[6].revents ||
+        polls[7].revents || polls[8].revents || polls[plus_sock_num].revents) {
+      // awake on any (old) activity
       set_awake(s, true);
+    }
+
+    if (polls[plus_sock_num].revents) {
+      // plus socket
+      zmq_msg_t msg;
+      err = zmq_msg_init(&msg);
+      assert(err == 0);
+      err = zmq_msg_recv(&msg, s->plus_sock_raw, 0);
+      assert(err >= 0);
+
+      assert(zmq_msg_size(&msg) == 1);
+
+      s->plus_state = ((char*)zmq_msg_data(&msg))[0];
+
+      zmq_msg_close(&msg);
+
+    } else {
+      // zmq messages
+      for (int i=0; i<num_polls - 1; i++) {
+        if (polls[i].revents) {
+          handle_message(s, polls[i].socket);
+        }
+      }
     }
   }
 }
 
-static int vision_subscribe(int fd, VisionPacket *rp, VisionStreamType type) {
+static int vision_subscribe(int fd, VisionPacket *rp, int type) {
   int err;
   LOGW("vision_subscribe type:%d", type);
 
@@ -2624,7 +2649,7 @@ static void* vision_connect_thread(void *args) {
   int err;
   set_thread_name("vision_connect");
 
-  UIState *s = (UIState*)args;
+  UIState *s = args;
   while (!do_exit) {
     usleep(100000);
     pthread_mutex_lock(&s->lock);
@@ -2662,7 +2687,7 @@ static void* light_sensor_thread(void *args) {
   int err;
   set_thread_name("light_sensor");
 
-  UIState *s = (UIState*)args;
+  UIState *s = args;
   s->light_sensor = 0.0;
 
   struct sensors_poll_device_t* device;
@@ -2707,7 +2732,7 @@ fail:
 
 
 static void* bg_thread(void* args) {
-  UIState *s = (UIState*)args;
+  UIState *s = args;
   set_thread_name("bg");
 
   EGLDisplay bg_display;
@@ -2744,7 +2769,7 @@ int is_leon() {
   #define MAXCHAR 1000
   FILE *fp;
   char str[MAXCHAR];
-  const char* filename = "/proc/cmdline";
+  char* filename = "/proc/cmdline";
 
   fp = fopen(filename, "r");
   if (fp == NULL){
@@ -2804,8 +2829,8 @@ int main(int argc, char* argv[]) {
 
   float smooth_brightness = BRIGHTNESS_B;
 
-  const int MIN_VOLUME = LEON ? 12 : 9;
-  const int MAX_VOLUME = LEON ? 15 : 12;
+  const int MIN_VOLUME = LEON ? 12 : 8;
+  const int MAX_VOLUME = LEON ? 15 : 13;
 
   set_volume(s, MIN_VOLUME);
 #ifdef DEBUG_FPS
@@ -2910,7 +2935,7 @@ int main(int argc, char* argv[]) {
     if (s->volume_timeout > 0) {
       s->volume_timeout--;
     } else {
-      int volume = fmin(MAX_VOLUME, MIN_VOLUME + s->scene.v_ego / 5);  // up one notch every 5 m/s
+      int volume = min(MAX_VOLUME, MIN_VOLUME + s->scene.v_ego / 5);  // up one notch every 5 m/s
       set_volume(s, volume);
     }
 
