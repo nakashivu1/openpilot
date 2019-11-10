@@ -193,7 +193,7 @@ typedef struct UIScene {
   int cal_perc;
 
   // Used to show gps planner status
-  bool gps_planner_active;
+  //bool gps_planner_active;
 
   bool brakeLights;
   bool leftBlinker;
