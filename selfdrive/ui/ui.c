@@ -681,7 +681,7 @@ static void ui_init_vision(UIState *s, const VisionStreamBufs back_bufs,
       .front_box_width = ui_info.front_box_width,
       .front_box_height = ui_info.front_box_height,
       .world_objects_visible = false,  // Invisible until we receive a calibration message.
-      //.gps_planner_active = false,
+      .gps_planner_active = false,
   };
 
   s->rgb_width = back_bufs.width;
@@ -2147,7 +2147,7 @@ void handle_message(UIState *s, void *which) {
     s->scene.curvature = datad.curvature;
     s->scene.engaged = datad.enabled;
     s->scene.engageable = datad.engageable;
-    //s->scene.gps_planner_active = datad.gpsPlannerActive;
+    s->scene.gps_planner_active = datad.gpsPlannerActive;
     s->scene.monitoring_active = datad.driverMonitoringOn;
     s->scene.output_scale = pdata.output;
 
@@ -2537,7 +2537,7 @@ static void ui_update(UIState *s) {
       set_awake(s, true);
     }
 
-    /*if (polls[9].revents) {
+    if (polls[9].revents) {
       // gps socket
 
       zmq_msg_t msg;
@@ -2568,7 +2568,7 @@ static void ui_update(UIState *s) {
         s->scene.gpsAccuracy = 99.8;
       }
       zmq_msg_close(&msg);
-    }*/
+    }
 
     if (polls[plus_sock_num].revents) {
       // plus socket
