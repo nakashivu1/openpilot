@@ -452,7 +452,7 @@ ALERTS = [
       "TAKE CONTROL IMMEDIATELY",
       "Reverse Gear",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, 2.2, 0., 4.),
+      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeDisengage, 2.2, 0., 4.),
 
   Alert(
       "cruiseDisabled",
