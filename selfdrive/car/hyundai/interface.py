@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 from cereal import car
+from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import EventTypes as ET, create_event
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.hyundai.carstate import CarState, get_can_parser, get_camera_parser
-from selfdrive.car.hyundai.values import ECU, ECU_FINGERPRINT, CAR, FINGERPRINTS
+from selfdrive.car.hyundai.values import ECU, ECU_FINGERPRINT, CAR, FINGERPRINTS, get_hud_alerts
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
 
@@ -308,11 +309,13 @@ class CarInterface(CarInterfaceBase):
 
   def apply(self, c):
     
+    hud_alert = get_hud_alerts(c.hudControl.visualAlert)
+    
     # Fix for Genesis hard fault when steer request sent while the speed is low 
     enable = 0 if self.CS.v_ego < self.CP.minSteerSpeed or self.turning_indicator_alert or self.low_speed_alert else c.enabled
     
     can_sends = self.CC.update(enable, self.CS, self.frame, c.actuators,
-                               c.cruiseControl.cancel, c.hudControl.visualAlert, c.hudControl.leftLaneVisible,
+                               c.cruiseControl.cancel, hud_alert, c.hudControl.leftLaneVisible,
                                c.hudControl.rightLaneVisible, c.hudControl.leftLaneDepart, c.hudControl.rightLaneDepart)
 
     self.frame += 1
