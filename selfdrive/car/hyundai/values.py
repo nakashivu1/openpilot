@@ -1,5 +1,13 @@
+from cereal import car
 from selfdrive.car import dbc_dict
 
+VisualAlert = car.CarControl.HUDControl.VisualAlert
+
+def get_hud_alerts(visual_alert):
+  if visual_alert == VisualAlert.steerRequired:
+    return 4
+  else:
+    return 0
 # Steer torque limits
 
 class SteerLimitParams:
