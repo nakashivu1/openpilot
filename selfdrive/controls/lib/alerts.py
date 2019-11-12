@@ -225,7 +225,7 @@ ALERTS = [
       "Steer Unavailable Below 31 MPH",
       "Steer Unavailable Below ",
       AlertStatus.userPrompt, AlertSize.small,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, 0., 0., .1),
 
   Alert(
       "debugAlert",
