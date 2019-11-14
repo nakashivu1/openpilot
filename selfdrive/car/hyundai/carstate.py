@@ -29,7 +29,8 @@ def get_can_parser(CP):
     ("BRAKE_ACT", "EMS12", 0),
     ("PV_AV_CAN", "EMS12", 0),
     ("TPS", "EMS12", 0),
-
+    ("CRUISE_LAMP_M", "EMS16", 0),
+    ("CF_Lvr_CruiseSet", "LVR12", 0),
     ("CYL_PRES", "ESP12", 0),
 
     ("CF_Clu_CruiseSwState", "CLU11", 0),
@@ -80,23 +81,7 @@ def get_can_parser(CP):
     ("WHL_SPD11", 50),
     ("SAS11", 100)
   ]
-  if CP.carFingerprint not in FEATURES["non_scc"]:
-    signals += [
-      ("MainMode_ACC", "SCC11", 0),
-      ("VSetDis", "SCC11", 0),
-      ("SCCInfoDisplay", "SCC11", 0),
-      ("ACC_ObjDist", "SCC11", 0),
-      ("ACCMode", "SCC12", 1),
-    ]
-    checks += [
-      ("SCC11", 50),
-      ("SCC12", 50),
-    ]
-  else:
-    signals += [
-      ("CRUISE_LAMP_M", "EMS16", 0),
-      ("CF_Lvr_CruiseSet", "LVR12", 0),
-    ]
+
   if CP.carFingerprint in FEATURES["use_cluster_gears"]:
     signals += [
       ("CF_Clu_InhibitD", "CLU15", 0),
@@ -182,10 +167,8 @@ class CarState():
     self.esp_disabled = cp.vl["TCS15"]['ESC_Off_Step']
     self.park_brake = cp.vl["CGW1"]['CF_Gway_ParkBrakeSw']
 
-    self.main_on = (cp.vl["SCC11"]["MainMode_ACC"] != 0) if not self.no_radar else \
-                                            cp.vl['EMS16']['CRUISE_LAMP_M']
-    self.acc_active = (cp.vl["SCC12"]['ACCMode'] != 0) if not self.no_radar else \
-                                      (cp.vl["LVR12"]['CF_Lvr_CruiseSet'] != 0)
+    self.main_on = cp.vl['EMS16']['CRUISE_LAMP_M']
+    self.acc_active = cp.vl["LVR12"]['CF_Lvr_CruiseSet'] != 0
     self.pcm_acc_status = int(self.acc_active)
 
     # calc best v_ego estimate, by averaging two opposite corners
