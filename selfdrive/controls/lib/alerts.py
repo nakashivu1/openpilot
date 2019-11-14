@@ -63,7 +63,7 @@ ALERTS = [
       "Steer Unavailable while Turning",
       "TAKE CONTROL",
       AlertStatus.userPrompt, AlertSize.small,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, 0., 0., 1.),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, 0., 0., 1.),
 
   # Miscellaneous alerts
   Alert(
@@ -113,42 +113,42 @@ ALERTS = [
       "KEEP EYES ON ROAD: User Appears Distracted",
       "",
       AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, .1, .1, alert_rate=0.75),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, 0., .1, alert_rate=0.75),
 
   Alert(
       "promptDriverDistracted",
       "KEEP EYES ON ROAD",
       "User Appears Distracted",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, .1, .1),
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, 3., .1),
 
   Alert(
       "driverDistracted",
       "DISENGAGE IMMEDIATELY",
       "User Was Distracted",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, .1, .1),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, 3., .1),
 
   Alert(
       "preDriverUnresponsive",
       "TOUCH STEERING WHEEL: No Face Detected",
       "",
       AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, .1, .1, alert_rate=0.75),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, 0., .1, alert_rate=0.75),
 
   Alert(
       "promptDriverUnresponsive",
       "TOUCH STEERING WHEEL",
       "User Is Unresponsive",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, .1, .1),
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, 3., .1),
 
   Alert(
       "driverUnresponsive",
       "DISENGAGE IMMEDIATELY",
       "User Was Unresponsive",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, .1, .1),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, 3., .1),
 
   Alert(
       "driverMonitorOff",
