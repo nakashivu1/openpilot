@@ -50,7 +50,7 @@ class CarInterface(CarInterfaceBase):
     ret.enableCruise = True  # stock acc
 
     ret.steerActuatorDelay = 0.1  # Default delay
-    ret.steerRateCost = 0.52
+    ret.steerRateCost = 0.5
     tire_stiffness_factor = 0.7
 
     ret.minEnableSpeed = -1.   # enable is done by stock ACC, so ignore this
@@ -77,7 +77,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 1275. + STD_CARGO_KG
       ret.wheelbase = 2.7
-      ret.steerRatio = 13.73   #Spec
+      ret.steerRatio = 13.5   #Spec
       tire_stiffness_factor = 0.685
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.10], [0.02]]
