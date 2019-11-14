@@ -1362,9 +1362,9 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
       //show Orange if more than 30 degrees
       //show red if  more than 50 degrees
       if(((int)(scene->angleSteers) < -30) || ((int)(scene->angleSteers) > 30)) {
-        val_color = nvgRGBA(255, 188, 3, 200);
+        val_color = nvgRGBA(255, 175, 3, 200);
       }
-      if(((int)(scene->angleSteers) < -50) || ((int)(scene->angleSteers) > 50)) {
+      if(((int)(scene->angleSteers) < -55) || ((int)(scene->angleSteers) > 55)) {
         val_color = nvgRGBA(255, 0, 0, 200);
       }
       // steering is in degrees
@@ -1386,10 +1386,10 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
       //show Orange if more than 30 degrees
       //show red if  more than 50 degrees
       if(((int)(scene->angleSteersDes) < -30) || ((int)(scene->angleSteersDes) > 30)) {
-        val_color = nvgRGBA(255, 188, 3, 200);
+        val_color = nvgRGBA(255, 255, 255, 200);
       }
       if(((int)(scene->angleSteersDes) < -50) || ((int)(scene->angleSteersDes) > 50)) {
-        val_color = nvgRGBA(255, 0, 0, 200);
+        val_color = nvgRGBA(255, 255, 255, 200);
       }
       // steering is in degrees
       snprintf(val_str, sizeof(val_str), "%.1f°",(scene->angleSteersDes));
