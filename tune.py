@@ -122,7 +122,10 @@ while True:
     process.kill()
     break
 
-    
+
+  if float(kegman.conf['tuneGernby']) != 1 and float(kegman.conf['tuneGernby']) != 0:
+    kegman.conf['tuneGernby'] = "1"
+
   if float(kegman.conf['Ki']) < 0 and float(kegman.conf['Ki']) != -1:
     kegman.conf['Ki'] = "0"
 
@@ -140,13 +143,85 @@ while True:
     
   if float(kegman.conf['steerRatio']) < 1 and float(kegman.conf['steerRatio']) != -1:
     kegman.conf['steerRatio'] = "1"
- 
+    
   if float(kegman.conf['steerRateCost']) < 0.01 and float(kegman.conf['steerRateCost']) != -1:
     kegman.conf['steerRateCost'] = "0.01"
-  
+    
   if float(kegman.conf['deadzone']) < 0:
     kegman.conf['deadzone'] = "0"
-
+    
+  if float(kegman.conf['1barBP0']) < -0.5:
+    kegman.conf['1barBP0'] = "-0.5"  
+    
+  if float(kegman.conf['1barBP0']) > 0.5:
+    kegman.conf['1barBP0'] = "0.5"    
+    
+  if float(kegman.conf['1barBP1']) < 0.5:
+    kegman.conf['1barBP1'] = "0.5"
+    
+  if float(kegman.conf['1barBP1']) > 8:
+    kegman.conf['1barBP1'] = "8"
+    
+  if float(kegman.conf['1barMax']) < 0.9:
+    kegman.conf['1barMax'] = "0.9"   
+    
+  if float(kegman.conf['1barMax']) > 2.5:
+    kegman.conf['1barMax'] = "2.5"
+    
+  if float(kegman.conf['2barBP0']) < -0.5:
+    kegman.conf['2barBP0'] = "-0.5"  
+    
+  if float(kegman.conf['2barBP0']) > 0.5:
+    kegman.conf['2barBP0'] = "0.5"    
+    
+  if float(kegman.conf['2barBP1']) < 0.5:
+    kegman.conf['2barBP1'] = "0.5"
+    
+  if float(kegman.conf['2barBP1']) > 8:
+    kegman.conf['2barBP1'] = "8"
+    
+  if float(kegman.conf['2barMax']) < 1.3:
+    kegman.conf['2barMax'] = "1.3"   
+    
+  if float(kegman.conf['2barMax']) > 2.5:
+    kegman.conf['2barMax'] = "2.5"
+    
+  if float(kegman.conf['3barBP0']) < -0.5:
+    kegman.conf['3barBP0'] = "-0.5"  
+    
+  if float(kegman.conf['3barBP0']) > 0.5:
+    kegman.conf['3barBP0'] = "0.5"    
+    
+  if float(kegman.conf['3barBP1']) < 0.5:
+    kegman.conf['3barBP1'] = "0.5"
+    
+  if float(kegman.conf['3barBP1']) > 8:
+    kegman.conf['3barBP1'] = "8"
+    
+  if float(kegman.conf['3barMax']) < 1.8:
+    kegman.conf['3barMax'] = "1.8"   
+    
+  if float(kegman.conf['3barMax']) > 2.5:
+    kegman.conf['3barMax'] = "2.5"  
+    
+  if float(kegman.conf['1barHwy']) < 0:
+    kegman.conf['1barHwy'] = "0"
+   
+  if float(kegman.conf['2barHwy']) < 0:
+    kegman.conf['2barHwy'] = "0"
+    
+  if float(kegman.conf['3barHwy']) < 0:
+    kegman.conf['3barHwy'] = "0" 
+    
+  if float(kegman.conf['1barHwy']) > 2:
+    kegman.conf['1barHwy'] = "2"
+   
+  if float(kegman.conf['2barHwy']) > 2:
+    kegman.conf['2barHwy'] = "2"
+    
+  if float(kegman.conf['3barHwy']) > 2:
+    kegman.conf['3barHwy'] = "2" 
+        
   if float(kegman.conf['Kf']) > 0.01:
     kegman.conf['Kf'] = "0.01"    
     
@@ -155,6 +230,12 @@ while True:
 
   #if float(kegman.conf['Kf']) < 0.00001:
   kegman.conf['Kf'] = str("{:.5f}".format(float(kegman.conf['Kf'])))
+
+  if float(kegman.conf['slowOnCurves']) > 0.00001:
+    kegman.conf['slowOnCurves'] = "1"
+  
+  if float(kegman.conf['slowOnCurves']) <= 0.99999:
+    kegman.conf['slowOnCurves'] = "0"  
     
 
   if write_json:
