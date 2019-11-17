@@ -113,14 +113,14 @@ ALERTS = [
       "KEEP EYES ON ROAD: User Appears Distracted",
       "",
       AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, 0., .1, alert_rate=0.75),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, .1, .1, alert_rate=0.75),
 
   Alert(
       "promptDriverDistracted",
       "KEEP EYES ON ROAD",
       "User Appears Distracted",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, 3., .1),
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, .1, .1),
 
   Alert(
       "driverDistracted",
@@ -134,14 +134,14 @@ ALERTS = [
       "TOUCH STEERING WHEEL: No Face Detected",
       "",
       AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, 0., .1, alert_rate=0.75),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, .1, .1, alert_rate=0.75),
 
   Alert(
       "promptDriverUnresponsive",
       "TOUCH STEERING WHEEL",
       "User Is Unresponsive",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, 3., .1),
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2, .1, .1, .1),
 
   Alert(
       "driverUnresponsive",
