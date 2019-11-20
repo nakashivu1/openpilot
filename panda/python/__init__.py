@@ -149,7 +149,7 @@ class Panda(object):
   def __init__(self, serial=None, claim=True):
     self._serial = serial
     self._handle = None
-    self.connect(claim)
+    #self.connect(claim)
 
   def close(self):
     self._handle.close()
