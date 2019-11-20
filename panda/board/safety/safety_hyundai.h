@@ -55,7 +55,7 @@ static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   // cruise control for car without SCC
   if ((addr == 608) && (!hyundai_has_scc)) {
     // first byte
-    int cruise_engaged = (GET_BYTES_04(to_push) >> 25) & 0x1;
+    int cruise_engaged = 1;
     //if (cruise_engaged && !hyundai_cruise_engaged_last) {
       controls_allowed = 1;
     //}
