@@ -31,7 +31,7 @@ static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   // check if stock camera ECU is still online
   if ((bus == 0) && (addr == 832)) {
     hyundai_camera_detected = 1;
-    controls_allowed = 0;
+    controls_allowed = 1;
   }
 
   // Find out which bus the camera is on
