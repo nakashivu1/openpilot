@@ -5,8 +5,8 @@ from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import EventTypes as ET, create_event
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.hyundai.carstate import CarState, get_can_parser, get_camera_parser
-from selfdrive.car.hyundai.values import ECU, ECU_FINGERPRINT, CAR, FINGERPRINTS, FEATURES
-from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
+from selfdrive.car.hyundai.values import CAMERA_MSGS, CAR, FINGERPRINTS, FEATURES
+from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness
 from selfdrive.car.interfaces import CarInterfaceBase
 
 GearShifter = car.CarState.GearShifter
@@ -22,7 +22,6 @@ class CarInterface(CarInterfaceBase):
     self.brake_pressed_prev = False
     self.cruise_enabled_prev = False
     self.low_speed_alert = False
-    self.vEgo_prev = False
     self.turning_indicator_alert = False
 
     # *** init the major players ***
@@ -35,11 +34,11 @@ class CarInterface(CarInterfaceBase):
       self.CC = CarController(self.cp.dbc_name, CP.carFingerprint)
 
   @staticmethod
-  def compute_gb(accel, speed):
-    return float(accel) / 3.0
+  def calc_accel_override(a_ego, a_target, v_ego, v_target):
+    return 1.0
 
   @staticmethod
-  def get_params(candidate, fingerprint=gen_empty_fingerprint(), vin="", has_relay=False):
+  def get_params(candidate, fingerprint, vin="", is_panda_black=False):
 
     ret = car.CarParams.new_message()
 
@@ -170,7 +169,7 @@ class CarInterface(CarInterfaceBase):
     ret.brakeMaxBP = [0.]
     ret.brakeMaxV = [1.]
 
-    ret.enableCamera = is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, ECU.CAM) or has_relay
+    ret.enableCamera = not any(x for x in CAMERA_MSGS if x in fingerprint) or is_panda_black
     ret.openpilotLongitudinalControl = False
 
     ret.steerLimitAlert = False
