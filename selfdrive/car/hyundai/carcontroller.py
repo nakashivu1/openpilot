@@ -3,17 +3,17 @@ from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai.hyundaican import create_lkas11, create_lkas12, \
                                              create_1191, create_1156, \
                                              create_clu11
-from selfdrive.car.hyundai.values import CAR, Buttons
+from selfdrive.car.hyundai.values import Buttons
 from selfdrive.can.packer import CANPacker
 
 
 # Steer torque limits
 
 class SteerLimitParams:
-  STEER_MAX = 255   # 409 is the max, 255 is stock
-  STEER_DELTA_UP = 3
-  STEER_DELTA_DOWN = 7
-  STEER_DRIVER_ALLOWANCE = 50
+  STEER_MAX = 280   # 409 is the max, 255 is stock, 280 is max for elantra
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 5
+  STEER_DRIVER_ALLOWANCE = 30
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
 
@@ -66,7 +66,7 @@ class CarController():
   def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, visual_alert,
               left_line, right_line, left_lane_depart, right_lane_depart):
 
-    if CS.left_blinker_on or CS.right_blinker_on:
+    if CS.left_blinker_flash or CS.right_blinker_flash:
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
     if self.turning_signal_timer:
       enabled = 0

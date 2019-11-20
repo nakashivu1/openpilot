@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 from cereal import car
+from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import EventTypes as ET, create_event
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.car.hyundai.carstate import CarState, get_can_parser, get_camera_parser
-from selfdrive.car.hyundai.values import ECU, ECU_FINGERPRINT, CAR, FINGERPRINTS
+from selfdrive.car.hyundai.values import ECU, ECU_FINGERPRINT, CAR, FINGERPRINTS, FEATURES
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
 
@@ -21,6 +22,8 @@ class CarInterface(CarInterfaceBase):
     self.brake_pressed_prev = False
     self.cruise_enabled_prev = False
     self.low_speed_alert = False
+    self.vEgo_prev = False
+    self.turning_indicator_alert = False
 
     # *** init the major players ***
     self.CS = CarState(CP)
@@ -49,7 +52,9 @@ class CarInterface(CarInterfaceBase):
 
     ret.steerActuatorDelay = 0.1  # Default delay
     ret.steerRateCost = 0.5
-    tire_stiffness_factor = 1.
+    tire_stiffness_factor = 0.8
+    
+    ret.minEnableSpeed = -1.   # enable is done by stock ACC, so ignore this
 
     if candidate in [CAR.SANTA_FE, CAR.SANTA_FE_1]:
       ret.lateralTuning.pid.kf = 0.00005
@@ -73,10 +78,10 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kf = 0.00006
       ret.mass = 1275. + STD_CARGO_KG
       ret.wheelbase = 2.7
-      ret.steerRatio = 13.73   #Spec
-      tire_stiffness_factor = 0.385
+      ret.steerRatio = 13.5   #Spec
+      tire_stiffness_factor = 0.682
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.11], [0.02]]
       ret.minSteerSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
       ret.lateralTuning.pid.kf = 0.00005
@@ -134,7 +139,6 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
 
 
-    ret.minEnableSpeed = -1.   # enable is done by stock ACC, so ignore this
     ret.longitudinalTuning.kpBP = [0.]
     ret.longitudinalTuning.kpV = [0.]
     ret.longitudinalTuning.kiBP = [0.]
@@ -199,7 +203,12 @@ class CarInterface(CarInterfaceBase):
     ret.wheelSpeeds.rr = self.CS.v_wheel_rr
 
     # gear shifter
-    ret.gearShifter = self.CS.gear_shifter
+    if self.CP.carFingerprint in FEATURES["use_cluster_gears"]:
+        ret.gearShifter = self.CS.gear_shifter_cluster
+    elif self.CP.carFingerprint in FEATURES["use_tcu_gears"]:
+        ret.gearShifter = self.CS.gear_tcu
+    else:
+        ret.gearShifter = self.CS.gear_shifter
 
     # gas pedal
     ret.gas = self.CS.car_gas
@@ -229,21 +238,21 @@ class CarInterface(CarInterfaceBase):
     # TODO: button presses
     buttonEvents = []
 
-    if self.CS.left_blinker_on != self.CS.prev_left_blinker_on:
+    if self.CS.left_blinker_flash != self.CS.prev_left_blinker_flash:
       be = car.CarState.ButtonEvent.new_message()
       be.type = ButtonType.leftBlinker
-      be.pressed = self.CS.left_blinker_on != 0
+      be.pressed = self.CS.left_blinker_flash != 0
       buttonEvents.append(be)
 
-    if self.CS.right_blinker_on != self.CS.prev_right_blinker_on:
+    if self.CS.right_blinker_flash != self.CS.prev_right_blinker_flash:
       be = car.CarState.ButtonEvent.new_message()
       be.type = ButtonType.rightBlinker
-      be.pressed = self.CS.right_blinker_on != 0
+      be.pressed = self.CS.right_blinker_flash != 0
       buttonEvents.append(be)
 
     ret.buttonEvents = buttonEvents
-    ret.leftBlinker = bool(self.CS.left_blinker_on)
-    ret.rightBlinker = bool(self.CS.right_blinker_on)
+    ret.leftBlinker = bool(self.CS.left_blinker_flash)
+    ret.rightBlinker = bool(self.CS.right_blinker_flash)
 
     ret.doorOpen = not self.CS.door_all_closed
     ret.seatbeltUnlatched = not self.CS.seatbelt
@@ -255,15 +264,15 @@ class CarInterface(CarInterfaceBase):
       self.low_speed_alert = False
 
     # turning indicator alert hysteresis logic
-    self.turning_indicator_alert = True if self.CS.left_blinker_on or self.CS.right_blinker_on else False
+    self.turning_indicator_alert = True if self.CS.left_blinker_flash or self.CS.right_blinker_flash else False
 
     events = []
-    if not ret.gearShifter == GearShifter.drive:
-      events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if ret.doorOpen:
-      events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if ret.seatbeltUnlatched:
-      events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+    #if not ret.gearShifter == GearShifter.drive:
+#   events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+#    if ret.doorOpen:
+#      events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+#    if ret.seatbeltUnlatched:
+#      events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.esp_disabled:
       events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if not self.CS.main_on:
