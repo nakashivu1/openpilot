@@ -15,6 +15,8 @@ static int elm327_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
       ((addr != 0x7DF) && ((addr & 0x7F8) != 0x7E0))) {
     tx = 0;
   }
+  // needed for forwarding
+  tx = 1;
   return tx;
 }
 
@@ -38,5 +40,6 @@ const safety_hooks elm327_hooks = {
   .rx = default_rx_hook,
   .tx = elm327_tx_hook,
   .tx_lin = elm327_tx_lin_hook,
+  .ignition = default_ign_hook,
   .fwd = default_fwd_hook,
 };
