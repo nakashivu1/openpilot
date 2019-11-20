@@ -24,7 +24,7 @@ def process_hud_alert(enabled, fingerprint, visual_alert, left_line,
 
   hud_alert = 0
   if visual_alert == VisualAlert.steerRequired:
-    hud_alert = 4
+    hud_alert = 0
 
   # initialize to no line visible
   lane_visible = 1
