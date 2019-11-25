@@ -204,7 +204,7 @@ typedef struct UIScene {
 
   bool is_playing_alert;
   // Used to show gps planner status
-  bool gps_planner_active;
+  //bool gps_planner_active;
 } UIScene;
 
 typedef struct {
@@ -495,7 +495,7 @@ sound_file sound_table[] = {
   { cereal_CarControl_HUDControl_AudibleAlert_chimeEngage, "../assets/sounds/engaged.wav", false },
   { cereal_CarControl_HUDControl_AudibleAlert_chimeWarning1, "../assets/sounds/warning_1.wav", false },
   { cereal_CarControl_HUDControl_AudibleAlert_chimeWarning2, "../assets/sounds/warning_2.wav", false },
-  { cereal_CarControl_HUDControl_AudibleAlert_chimeWarningRepeat, "../assets/sounds/warning_2.wav", true },
+  { cereal_CarControl_HUDControl_AudibleAlert_chimeWarningRepeat, "../assets/sounds/warning_repeat.wav", true },
   { cereal_CarControl_HUDControl_AudibleAlert_chimeError, "../assets/sounds/error.wav", false },
   { cereal_CarControl_HUDControl_AudibleAlert_chimePrompt, "../assets/sounds/error.wav", false },
   { cereal_CarControl_HUDControl_AudibleAlert_none, NULL, false },
@@ -1229,10 +1229,10 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     char uom_str[3];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
     //show red/orange if gps accuracy is high
-      if(scene->gpsAccuracy > 0.59) {
+      if(scene->gpsAccuracy > 1.0) {
          val_color = nvgRGBA(255, 188, 3, 200);
       }
-      if(scene->gpsAccuracy > 0.8) {
+      if(scene->gpsAccuracy > 1.5) {
          val_color = nvgRGBA(255, 0, 0, 200);
       }
 
@@ -1358,17 +1358,17 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
   if (true) {
     char val_str[16];
     char uom_str[6];
-    NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
-      //show Orange if more than 6 degrees
-      //show red if  more than 12 degrees
-      if(((int)(scene->angleSteers) < -6) || ((int)(scene->angleSteers) > 6)) {
-        val_color = nvgRGBA(255, 188, 3, 200);
+    NVGcolor val_color = nvgRGBA(0, 255, 0, 200);
+      //show Orange if more than 30 degrees
+      //show red if  more than 50 degrees
+      if(((int)(scene->angleSteers) < -30) || ((int)(scene->angleSteers) > 30)) {
+        val_color = nvgRGBA(255, 175, 3, 200);
       }
-      if(((int)(scene->angleSteers) < -12) || ((int)(scene->angleSteers) > 12)) {
+      if(((int)(scene->angleSteers) < -55) || ((int)(scene->angleSteers) > 55)) {
         val_color = nvgRGBA(255, 0, 0, 200);
       }
       // steering is in degrees
-      snprintf(val_str, sizeof(val_str), "%.0f°",(scene->angleSteers));
+      snprintf(val_str, sizeof(val_str), "%.1f°",(scene->angleSteers));
 
       snprintf(uom_str, sizeof(uom_str), "");
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "REAL STEER",
@@ -1383,16 +1383,16 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     char val_str[16];
     char uom_str[6];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
-      //show Orange if more than 6 degrees
-      //show red if  more than 12 degrees
-      if(((int)(scene->angleSteersDes) < -6) || ((int)(scene->angleSteersDes) > 6)) {
-        val_color = nvgRGBA(255, 188, 3, 200);
+      //show Orange if more than 30 degrees
+      //show red if  more than 50 degrees
+      if(((int)(scene->angleSteersDes) < -30) || ((int)(scene->angleSteersDes) > 30)) {
+        val_color = nvgRGBA(255, 255, 255, 200);
       }
-      if(((int)(scene->angleSteersDes) < -12) || ((int)(scene->angleSteersDes) > 12)) {
-        val_color = nvgRGBA(255, 0, 0, 200);
+      if(((int)(scene->angleSteersDes) < -50) || ((int)(scene->angleSteersDes) > 50)) {
+        val_color = nvgRGBA(255, 255, 255, 200);
       }
       // steering is in degrees
-      snprintf(val_str, sizeof(val_str), "%.0f°",(scene->angleSteersDes));
+      snprintf(val_str, sizeof(val_str), "%.1f°",(scene->angleSteersDes));
 
       snprintf(uom_str, sizeof(uom_str), "");
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "DESIR STEER",
