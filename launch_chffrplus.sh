@@ -18,7 +18,7 @@ function launch {
 
     # Touch all files on release2 after checkout to prevent rebuild
     BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    if [[ "$BRANCH" == "mad6.4_elantratune" ]]; then
+    if [[ "$BRANCH" == "MDPS6.4_elantra" ]]; then
         touch **
     fi
 
