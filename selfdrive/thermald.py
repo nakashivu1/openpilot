@@ -104,16 +104,20 @@ def handle_fan(max_cpu_temp, bat_temp, fan_speed):
   return fan_speed
 
 
-def check_car_battery_voltage(should_start, health, charging_disabled):
+def check_car_battery_voltage(should_start, health, charging_disabled, msg):
 
   # charging disallowed if:
   #   - there are health packets from panda, and;
   #   - 12V battery voltage is too low, and;
   #   - onroad isn't started
-  if charging_disabled and (health is None or health.health.voltage > 11800):
+  #   - keep battery within 67-80% State of Charge to preserve longevity
+  if charging_disabled and (health is None or health.health.voltage > 11800) and msg.thermal.batteryPercent < 60:
     charging_disabled = False
     os.system('echo "1" > /sys/class/power_supply/battery/charging_enabled')
-  elif not charging_disabled and health is not None and health.health.voltage < 11500 and not should_start:
+  elif not charging_disabled and (msg.thermal.batteryPercent > 80 or (health is not None and health.health.voltage < 11500 and not should_start)):
+    charging_disabled = True
+    os.system('echo "0" > /sys/class/power_supply/battery/charging_enabled')
+  elif msg.thermal.batteryCurrent < 0 and msg.thermal.batteryPercent > 80:
     charging_disabled = True
     os.system('echo "0" > /sys/class/power_supply/battery/charging_enabled')
 
@@ -124,7 +128,7 @@ def thermald_thread():
   setup_eon_fan()
 
   # prevent LEECO from undervoltage
-  BATT_PERC_OFF = 10 if LEON else 3
+  BATT_PERC_OFF = 40 if LEON else 3
 
   # now loop
   thermal_sock = messaging.pub_sock(service_list['thermal'].port)
@@ -254,7 +258,14 @@ def thermald_thread():
          started_seen and (sec_since_boot() - off_ts) > 60:
         os.system('LD_LIBRARY_PATH="" svc power shutdown')
 
-    #charging_disabled = check_car_battery_voltage(should_start, health, charging_disabled)
+    charging_disabled = check_car_battery_voltage(should_start, health, charging_disabled, msg)
+
+    # need to force batteryStatus because after NEOS update for 0.5.7 this doesn't work properly
+    if msg.thermal.batteryCurrent > 0:
+      msg.thermal.batteryStatus = "Discharging"
+    else:
+      msg.thermal.batteryStatus = "Charging"
+
 
     msg.thermal.chargingDisabled = charging_disabled
     msg.thermal.chargingError = current_filter.x > 0. and msg.thermal.batteryPercent < 90  # if current is positive, then battery is being discharged

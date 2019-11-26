@@ -1,8 +1,8 @@
-const int HYUNDAI_MAX_STEER = 255;             // like stock
-const int HYUNDAI_MAX_RT_DELTA = 112;          // max delta torque allowed for real time checks
+const int HYUNDAI_MAX_STEER = 409;             // like stock
+const int HYUNDAI_MAX_RT_DELTA = 200;          // max delta torque allowed for real time checks
 const uint32_t HYUNDAI_RT_INTERVAL = 250000;    // 250ms between real time checks
-const int HYUNDAI_MAX_RATE_UP = 3;
-const int HYUNDAI_MAX_RATE_DOWN = 7;
+const int HYUNDAI_MAX_RATE_UP = 5;
+const int HYUNDAI_MAX_RATE_DOWN = 10;
 const int HYUNDAI_DRIVER_TORQUE_ALLOWANCE = 50;
 const int HYUNDAI_DRIVER_TORQUE_FACTOR = 2;
 
@@ -16,6 +16,7 @@ uint32_t hyundai_ts_last = 0;
 struct sample_t hyundai_torque_driver;         // last few driver torques measured
 int OP_LKAS_live = 0;
 bool hyundai_LKAS_forwarded = 0;
+bool hyundai_has_scc = 0;
 
 static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   int bus = GET_BUS(to_push);
@@ -40,13 +41,26 @@ static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
 
   // enter controls on rising edge of ACC, exit controls on ACC off
   if (addr == 1057) {
+    hyundai_has_scc = 1;    
     // 2 bits: 13-14
     int cruise_engaged = (GET_BYTES_04(to_push) >> 13) & 0x3;
-    if (cruise_engaged && !hyundai_cruise_engaged_last) {
+    //if (cruise_engaged && !hyundai_cruise_engaged_last) {
       controls_allowed = 1;
-    }
+    //}
     if (!cruise_engaged) {
-      controls_allowed = 0;
+      //controls_allowed = 0;
+    }
+    hyundai_cruise_engaged_last = cruise_engaged;
+  }
+  // cruise control for car without SCC and LKAS
+  if ((addr == 608) && (!hyundai_has_scc)) {
+    // first byte
+    int cruise_engaged = (GET_BYTES_04(to_push) >> 25) & 0x1;
+    //if (cruise_engaged && !hyundai_cruise_engaged_last) {
+      controls_allowed = 1;
+    //}
+    if (!cruise_engaged) {
+      //controls_allowed = 0;
     }
     hyundai_cruise_engaged_last = cruise_engaged;
   }
@@ -73,8 +87,8 @@ static int hyundai_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     uint32_t ts = TIM2->CNT;
     bool violation = 0;
 
-    if ((!OP_LKAS_live) && (!hyundai_LKAS_forwarded)) {
-      OP_LKAS_live = 50;
+    if (!hyundai_LKAS_forwarded) {
+      OP_LKAS_live = 20;
     }
     if ((hyundai_LKAS_forwarded) && (!OP_LKAS_live)) {
       hyundai_LKAS_forwarded = 0;

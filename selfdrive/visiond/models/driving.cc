@@ -30,7 +30,7 @@
 
 // #define DUMP_YUV
 
-Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE> vander;
+Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE - 1> vander;
 
 void model_init(ModelState* s, cl_device_id device_id, cl_context context, int temporal) {
   model_input_init(&s->in, MODEL_WIDTH, MODEL_HEIGHT, device_id, context);
@@ -50,7 +50,7 @@ void model_init(ModelState* s, cl_device_id device_id, cl_context context, int t
 
   // Build Vandermonde matrix
   for(int i = 0; i < MODEL_PATH_DISTANCE; i++) {
-    for(int j = 0; j < POLYFIT_DEGREE; j++) {
+    for(int j = 0; j < POLYFIT_DEGREE - 1; j++) {
       vander(i, j) = pow(i, POLYFIT_DEGREE-j-1);
     }
   }
@@ -119,9 +119,9 @@ ModelData model_eval_frame(ModelState* s, cl_command_queue q,
   model.left_lane.prob = sigmoid(net_outputs.left_lane[MODEL_PATH_DISTANCE*2]);
   model.right_lane.prob = sigmoid(net_outputs.right_lane[MODEL_PATH_DISTANCE*2]);
 
-  poly_fit(model.path.points, model.path.stds, model.path.poly);
-  poly_fit(model.left_lane.points, model.left_lane.stds, model.left_lane.poly);
-  poly_fit(model.right_lane.points, model.right_lane.stds, model.right_lane.poly);
+  poly_fit(model.path.points, model.path.stds, model.path.poly, 0, 0);
+  poly_fit(model.left_lane.points, model.left_lane.stds, model.left_lane.poly, 3, 0);
+  poly_fit(model.right_lane.points, model.right_lane.stds, model.right_lane.poly, 3, 0);
 
   const double max_dist = 140.0;
   const double max_rel_vel = 10.0;
@@ -191,18 +191,21 @@ void model_free(ModelState* s) {
   delete s->m;
 }
 
-void poly_fit(float *in_pts, float *in_stds, float *out) {
+void poly_fit(float *in_pts, float *in_stds, float *out, int dx0, int dx1) {
   // References to inputs
   Eigen::Map<Eigen::Matrix<float, MODEL_PATH_DISTANCE, 1> > pts(in_pts, MODEL_PATH_DISTANCE);
   Eigen::Map<Eigen::Matrix<float, MODEL_PATH_DISTANCE, 1> > std(in_stds, MODEL_PATH_DISTANCE);
-  Eigen::Map<Eigen::Matrix<float, POLYFIT_DEGREE, 1> > p(out, POLYFIT_DEGREE);
+  Eigen::Map<Eigen::Matrix<float, POLYFIT_DEGREE - 1, 1> > p(out, POLYFIT_DEGREE - 1);
+
+  float y0 = pts[dx0];
+  pts = pts.array() - y0;
 
   // Build Least Squares equations
-  Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE> lhs = vander.array().colwise() / std.array();
+  Eigen::Matrix<float, MODEL_PATH_DISTANCE, POLYFIT_DEGREE - 1> lhs = vander.array().colwise() / std.array();
   Eigen::Matrix<float, MODEL_PATH_DISTANCE, 1> rhs = pts.array() / std.array();
 
   // Improve numerical stability
-  Eigen::Matrix<float, POLYFIT_DEGREE, 1> scale = 1. / (lhs.array()*lhs.array()).sqrt().colwise().sum();
+  Eigen::Matrix<float, POLYFIT_DEGREE - 1, 1> scale = 1. / (lhs.array()*lhs.array()).sqrt().colwise().sum();
   lhs = lhs * scale.asDiagonal();
 
   // Solve inplace
@@ -211,8 +214,13 @@ void poly_fit(float *in_pts, float *in_stds, float *out) {
 
   // Apply scale to output
   p = p.transpose() * scale.asDiagonal();
-}
+  out[3] = y0;
 
+  //if dx1 is not zero then change slope slightly to force through the second point as well
+  if (dx1 > 0) {
+    out[2] = (pts[dx1] - out[0] * pow(dx1,3) - out[1] * pow(dx1,2) - out[3] ) / dx1;
+  }
+}
 
 void fill_path(cereal::ModelData::PathData::Builder path, const PathData path_data) {
   kj::ArrayPtr<const float> poly(&path_data.poly[0], ARRAYSIZE(path_data.poly));
@@ -266,3 +274,5 @@ void model_publish(void* sock, uint32_t frame_id,
         auto bytes = words.asBytes();
         zmq_send(sock, bytes.begin(), bytes.size(), ZMQ_DONTWAIT);
       }
+
+
