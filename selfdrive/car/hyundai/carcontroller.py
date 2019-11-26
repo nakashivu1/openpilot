@@ -88,9 +88,9 @@ class CarController(object):
     low_speed = 41 if CS.v_ego < 17 else 0
     can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.NONE, low_speed, self.clu11_cnt))
 
-    if pcm_cancel_cmd:
-      self.clu11_cnt = self.cnt % 0x10
-      can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.CANCEL, 0, self.clu11_cnt))
+#    if pcm_cancel_cmd:
+#      self.clu11_cnt = self.cnt % 0x10
+#      can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.CANCEL, 0, self.clu11_cnt))
 
     if CS.stopped:
       # run only first time when the car stops
