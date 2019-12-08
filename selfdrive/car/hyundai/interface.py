@@ -3,7 +3,7 @@ from cereal import car
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import EventTypes as ET, create_event
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.hyundai.carstate import CarState, get_can_parser, get_camera_parser
+from selfdrive.car.hyundai.carstate import CarState, get_can_parser, get_mdps_parser, get_camera_parser
 from selfdrive.car.hyundai.values import ECU, ECU_FINGERPRINT, CAR, FINGERPRINTS
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -27,6 +27,7 @@ class CarInterface(CarInterfaceBase):
     # *** init the major players ***
     self.CS = CarState(CP)
     self.cp = get_can_parser(CP)
+    self.cp_mdps = get_mdps_parser(CP)
     self.cp_cam = get_camera_parser(CP)
 
     self.CC = None
@@ -90,8 +91,8 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 12.2
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.24], [0.08]]
-      ret.minSteerSpeed = 49 * CV.KPH_TO_MS
-      ret.minEnableSpeed = 50 * CV.KPH_TO_MS
+      ret.minSteerSpeed = 5 * CV.KPH_TO_MS
+      ret.minEnableSpeed = 5 * CV.KPH_TO_MS
     elif candidate in [CAR.GENESIS_G90, CAR.GENESIS_G80]:
       ret.mass = 2200
       ret.wheelbase = 3.15
@@ -186,7 +187,7 @@ class CarInterface(CarInterfaceBase):
     self.cp.update_strings(can_strings)
     self.cp_cam.update_strings(can_strings)
 
-    self.CS.update(self.cp, self.cp_cam)
+    self.CS.update(self.cp, self.cp_mdps, self.cp_cam)
     # create message
     ret = car.CarState.new_message()
 
