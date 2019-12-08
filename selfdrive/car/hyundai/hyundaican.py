@@ -6,7 +6,7 @@ hyundai_checksum = crcmod.mkCrcFun(0x11D, initCrc=0xFD, rev=False, xorOut=0xdf)
 def make_can_msg(addr, dat, alt):
   return [addr, 0, dat, alt]
 
-def create_lkas11(packer, car_fingerprint, apply_steer, steer_req, cnt, enabled, lkas11, hud_alert,
+def create_lkas11(packer, car_fingerprint, bus, apply_steer, steer_req, cnt, enabled, lkas11, hud_alert,
                                    lane_visible, left_lane_depart, right_lane_depart, keep_stock=False):
   values = {
     "CF_Lkas_Bca_R": 3 if enabled else 0,
@@ -57,7 +57,7 @@ def create_lkas11(packer, car_fingerprint, apply_steer, steer_req, cnt, enabled,
 
   values["CF_Lkas_Chksum"] = checksum
 
-  return packer.make_can_msg("LKAS11", 0, values)
+  return packer.make_can_msg("LKAS11", bus, values)
 
 def create_lkas12():
   return make_can_msg(1342, b"\x00\x00\x00\x00\x60\x05", 0)
@@ -87,3 +87,24 @@ def create_clu11(packer, clu11, button, speed, cnt):
   }
 
   return packer.make_can_msg("CLU11", 1 if button == 0 else 0, values)
+
+def create_mdps12(packer, car_fingerprint, cnt, mdps12):
+  values = {
+    "CR_Mdps_StrColTq": mdps12["CR_Mdps_StrColTq"],
+    "CF_Mdps_Def": mdps12["CF_Mdps_Def"],
+    "CF_Mdps_ToiActive": 0,
+    "CF_Mdps_ToiUnavail": 1,
+    "CF_Mdps_MsgCount2": cnt,
+    "CF_Mdps_Chksum2": 0,
+    "CF_Mdps_ToiFlt": mdps12["CF_Mdps_ToiFlt"],
+    "CF_Mdps_SErr": mdps12["CF_Mdps_SErr"],
+    "CR_Mdps_StrTq": mdps12["CR_Mdps_StrTq"],
+    "CF_Mdps_FailStat": mdps12["CF_Mdps_FailStat"],
+    "CR_Mdps_OutTq": mdps12["CR_Mdps_OutTq"],
+  }
+
+  dat = packer.make_can_msg("MDPS12", 0, values)[2]
+  checksum = sum(dat) % 256
+  values["CF_Mdps_Chksum2"] = checksum
+
+  return packer.make_can_msg("MDPS12", 2, values)
