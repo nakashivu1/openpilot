@@ -1,7 +1,7 @@
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai.hyundaican import create_lkas11, create_lkas12, \
                                              create_1191, create_1156, \
-                                             create_clu11
+                                             create_clu11, create_mdps12
 from selfdrive.car.hyundai.values import Buttons
 from selfdrive.can.packer import CANPacker
 
@@ -52,7 +52,7 @@ class CarController(object):
 
     if CS.left_blinker_flash or CS.right_blinker_flash:
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
-    if self.turning_signal_timer:
+    if self.turning_signal_timer or abs(CS.angle_steers) > 100.:
       enabled = 0
 
     ### Steering Torque
@@ -72,6 +72,7 @@ class CarController(object):
     can_sends = []
 
     self.lkas11_cnt = frame % 0x10
+    self.mdps12_cnt = frame % 0x100
 
     if self.camera_disconnected:
       if (frame % 10) == 0:
@@ -80,11 +81,18 @@ class CarController(object):
         can_sends.append(create_1191())
       if (frame % 7) == 0:
         can_sends.append(create_1156())
+    elif not pcm_cancel_cmd:
+      can_sends.append(create_mdps12(self.packer, self.car_fingerprint, self.mdps12_cnt, CS.mdps12))
 
-    can_sends.append(create_lkas11(self.packer, self.car_fingerprint, apply_steer, steer_req, self.lkas11_cnt,
+    can_sends.append(create_lkas11(self.packer, self.car_fingerprint, 0, apply_steer, steer_req, self.lkas11_cnt,
                                    enabled, CS.lkas11, hud_alert, lane_visible, left_lane_depart, right_lane_depart,
                                    keep_stock=(not self.camera_disconnected)))
-
+    can_sends.append(create_lkas11(self.packer, self.car_fingerprint, 1, apply_steer, steer_req, self.lkas11_cnt,
+                                   enabled, CS.lkas11, hud_alert, lane_visible, left_lane_depart, right_lane_depart,
+                                   keep_stock=(not self.camera_disconnected)))
+    low_speed = 56 if CS.v_ego < 16 else 0
+    can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.NONE, low_speed, self.lkas11_cnt))
+    
     #if pcm_cancel_cmd:
       #self.clu11_cnt = frame % 0x10
       #can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.CANCEL, self.clu11_cnt))
@@ -97,7 +105,7 @@ class CarController(object):
         self.clu11_cnt = 0
       # when lead car starts moving, create 6 RES msgs
       elif CS.lead_distance > self.last_lead_distance and (frame - self.last_resume_frame) > 5:
-        can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.RES_ACCEL, self.clu11_cnt))
+        can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.RES_ACCEL, 0, self.clu11_cnt))
         self.clu11_cnt += 1
         # interval after 6 msgs
         if self.clu11_cnt > 5:
