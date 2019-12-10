@@ -66,17 +66,12 @@ def get_can_parser(CP):
     ("CR_Mdps_DrvTq", "MDPS11", 0),
     ("CR_Mdps_StrAng", "MDPS11", 0),
     ("CF_Mdps_Stat", "MDPS11", 0),
-    ("CR_Mdps_StrColTq", "MDPS12", 0),
     ("CF_Mdps_Def", "MDPS12", 0),
-    ("CF_Mdps_ToiActive", "MDPS12", 0),
-    ("CF_Mdps_ToiUnavail", "MDPS12", 0),
     ("CF_Mdps_MsgCount2", "MDPS12", 0),
     ("CF_Mdps_Chksum2", "MDPS12", 0),
     ("CF_Mdps_ToiFlt", "MDPS12", 0),
     ("CF_Mdps_SErr", "MDPS12", 0),
     ("CR_Mdps_StrTq", "MDPS12", 0),
-    ("CF_Mdps_FailStat", "MDPS12", 0),
-    ("CR_Mdps_OutTq", "MDPS12", 0),
 
     ("MainMode_ACC", "SCC11", 0),
     ("VSetDis", "SCC11", 0),
@@ -101,6 +96,33 @@ def get_can_parser(CP):
 
   return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
 
+def get_mdps_parser(CP):
+
+  signals = [
+    # sig_name, sig_address, default
+    ("CR_Mdps_DrvTq", "MDPS11", 0),
+    ("CR_Mdps_StrAng", "MDPS11", 0),
+    ("CF_Mdps_Stat", "MDPS11", 0),
+    ("CR_Mdps_StrColTq", "MDPS12", 0),
+    ("CF_Mdps_Def", "MDPS12", 0),
+    ("CF_Mdps_ToiActive", "MDPS12", 0),
+    ("CF_Mdps_ToiUnavail", "MDPS12", 0),
+    ("CF_Mdps_MsgCount2", "MDPS12", 0),
+    ("CF_Mdps_Chksum2", "MDPS12", 0),
+    ("CF_Mdps_ToiFlt", "MDPS12", 0),
+    ("CF_Mdps_SErr", "MDPS12", 0),
+    ("CR_Mdps_StrTq", "MDPS12", 0),
+    ("CF_Mdps_FailStat", "MDPS12", 0),
+    ("CR_Mdps_OutTq", "MDPS12", 0),
+  ]
+
+  checks = [
+    # address, frequency
+    ("MDPS12", 50),
+    ("MDPS11", 100),
+  ]
+
+  return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 1)
 
 def get_camera_parser(CP):
 
@@ -151,7 +173,7 @@ class CarState(object):
     self.right_blinker_flash = 0
     self.has_scc = CP.carFingerprint not in FEATURES["non_scc"]
 
-  def update(self, cp, cp_cam):
+  def update(self, cp, cp_mdps, cp_cam):
     # update prevs, update must run once per Loop
     self.prev_left_blinker_on = self.left_blinker_on
     self.prev_right_blinker_on = self.right_blinker_on
@@ -205,12 +227,12 @@ class CarState(object):
     self.left_blinker_flash = cp.vl["CGW1"]['CF_Gway_TurnSigLh']
     self.right_blinker_on = cp.vl["CGW1"]['CF_Gway_TSigRHSw']
     self.right_blinker_flash = cp.vl["CGW1"]['CF_Gway_TurnSigRh']
-    self.steer_override = abs(cp.vl["MDPS11"]['CR_Mdps_DrvTq']) > STEER_THRESHOLD
-    self.steer_state = cp.vl["MDPS12"]['CF_Mdps_ToiActive'] #0 NOT ACTIVE, 1 ACTIVE
-    self.steer_error = cp.vl["MDPS12"]['CF_Mdps_ToiUnavail']
+    self.steer_override = abs(cp_mdps.vl["MDPS11"]['CR_Mdps_DrvTq']) > STEER_THRESHOLD
+    self.steer_state = cp_mdps.vl["MDPS12"]['CF_Mdps_ToiActive'] #0 NOT ACTIVE, 1 ACTIVE
+    self.steer_error = cp_mdps.vl["MDPS12"]['CF_Mdps_ToiUnavail']
     self.brake_error = 0
-    self.steer_torque_driver = cp.vl["MDPS11"]['CR_Mdps_DrvTq']
-    self.steer_torque_motor = cp.vl["MDPS12"]['CR_Mdps_OutTq']
+    self.steer_torque_driver = cp_mdps.vl["MDPS11"]['CR_Mdps_DrvTq']
+    self.steer_torque_motor = cp_mdps.vl["MDPS12"]['CR_Mdps_OutTq']
     self.stopped = cp.vl["SCC11"]['SCCInfoDisplay'] == 4. if self.has_scc else False
     self.lead_distance = cp.vl["SCC11"]['ACC_ObjDist'] if self.has_scc else 0
 
@@ -261,6 +283,9 @@ class CarState(object):
     else:
       self.gear_tcu = "unknown"
 
+    self.lkas_button_on = 7 > cp_cam.vl["LKAS11"]["CF_Lkas_LdwsSysState"] != 0
+
     # save the entire LKAS11 and CLU11
     self.lkas11 = cp_cam.vl["LKAS11"]
     self.clu11 = cp.vl["CLU11"]
+    self.mdps12 = cp_mdps.vl["MDPS12"]
