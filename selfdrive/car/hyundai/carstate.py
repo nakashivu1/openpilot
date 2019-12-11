@@ -64,14 +64,6 @@ def get_can_parser(CP):
     ("CF_Lvr_CruiseSet", "LVR12", 0),
 
     ("CR_Mdps_DrvTq", "MDPS11", 0),
-    ("CR_Mdps_StrAng", "MDPS11", 0),
-    ("CF_Mdps_Stat", "MDPS11", 0),
-    ("CF_Mdps_Def", "MDPS12", 0),
-    ("CF_Mdps_MsgCount2", "MDPS12", 0),
-    ("CF_Mdps_Chksum2", "MDPS12", 0),
-    ("CF_Mdps_ToiFlt", "MDPS12", 0),
-    ("CF_Mdps_SErr", "MDPS12", 0),
-    ("CR_Mdps_StrTq", "MDPS12", 0),
 
     ("MainMode_ACC", "SCC11", 0),
     ("VSetDis", "SCC11", 0),
@@ -87,9 +79,11 @@ def get_can_parser(CP):
   checks = [
     # address, frequency
     ("TCS15", 10),
+    ("TCS13", 50),
     ("CLU11", 50),
     ("ESP12", 100),
     ("CGW1", 10),
+    ("CGW4", 5),
     ("WHL_SPD11", 50),
     ("SAS11", 100)
   ]
