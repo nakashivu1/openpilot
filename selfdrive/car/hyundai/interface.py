@@ -190,6 +190,7 @@ class CarInterface(object):
   def update(self, c, can_strings):
     # ******************* do can recv *******************
     self.cp.update_strings(can_strings)
+    self.cp_mdps.update_strings(can_strings)
     self.cp_cam.update_strings(can_strings)
 
     self.CS.update(self.cp, self.cp_mdps, self.cp_cam)
