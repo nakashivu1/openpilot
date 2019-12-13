@@ -99,7 +99,7 @@ class CarController():
                                    enabled, CS.lkas11, hud_alert, lane_visible, left_lane_depart, right_lane_depart,
                                    keep_stock=(not self.camera_disconnected)))
     
-    low_speed = 56 if CS.v_ego < 16 else 0
+    low_speed = 51 if CS.v_ego < 16 else 0
     can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.NONE, low_speed, self.lkas11_cnt))
 
     #if pcm_cancel_cmd:
