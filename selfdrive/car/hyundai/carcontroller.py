@@ -3,9 +3,23 @@ from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai.hyundaican import create_lkas11, create_lkas12, \
                                              create_1191, create_1156, \
                                              create_clu11, create_mdps12
-from selfdrive.car.hyundai.values import CAR, Buttons, SteerLimitParams
+from selfdrive.car.hyundai.values import CAR, Buttons
 from selfdrive.can.packer import CANPacker
 
+# Steer torque limits
+
+class SteerLimitParams:
+  STEER_MAX = 408   # 409 is the max, 255 is stock
+  STEER_DELTA_UP = 4
+  STEER_DELTA_DOWN = 6
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+
+class LowSpeedSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 300
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 4
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
@@ -64,7 +78,10 @@ class CarController():
     ### Steering Torque
     apply_steer = actuators.steer * SteerLimitParams.STEER_MAX
 
-    apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
+    if CS.v_ego < 6:
+      apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
+    else:
+      apply_steer = apply_std_steer_torque_limits(apply_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
 
     if not enabled:
       apply_steer = 0
