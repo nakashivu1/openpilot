@@ -762,7 +762,7 @@ int main(void) {
 
   // default to silent mode to prevent issues with Ford
   // hardcode a specific safety mode if you want to force the panda to be in a specific mode
-  int err = safety_set_mode(SAFETY_NOOUTPUT, 0);
+  int err = safety_set_mode(SAFETY_ALLOUTPUT, 0);  // MDPS will hard if SAFETY_NOOUTPUT
   if (err == -1) {
     puts("Failed to set safety mode\n");
     while (true) {
