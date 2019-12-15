@@ -17,10 +17,10 @@ class SteerLimitParams:
   STEER_DRIVER_FACTOR = 1
 
 class LowSpeedSteerLimitParams(SteerLimitParams):
-  STEER_MAX = 250
+  STEER_MAX = 275
   STEER_DELTA_UP = 2
-  STEER_DELTA_DOWN = 4
-  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DELTA_DOWN = 2
+  STEER_DRIVER_ALLOWANCE = 30
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
 
@@ -73,7 +73,7 @@ class CarController():
   def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, visual_alert,
               left_line, right_line, left_lane_depart, right_lane_depart):
 
-    if CS.left_blinker_flash or CS.right_blinker_flash or abs(CS.angle_steers) > 90.:
+    if CS.left_blinker_flash or CS.right_blinker_flash or abs(CS.angle_steers) > 95. or CS.steer_override and CS.v_ego < 7:
       self.turning_signal_timer = 100  # Disable for 1 Seconds 
     if self.turning_signal_timer:
       enabled = 0
