@@ -73,7 +73,7 @@ class CarController():
   def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, visual_alert,
               left_line, right_line, left_lane_depart, right_lane_depart):
 
-    if CS.left_blinker_flash or CS.right_blinker_flash or abs(CS.angle_steers) > 95. or (CS.steer_override and CS.v_ego < 7):
+    if CS.left_blinker_flash or CS.right_blinker_flash or abs(CS.angle_steers) > 90. or (CS.steer_override_lowspeed and CS.v_ego < 7):
       self.turning_signal_timer = 100  # Disable for 1 Seconds 
     if self.turning_signal_timer:
       enabled = 0
