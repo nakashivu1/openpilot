@@ -1,3 +1,4 @@
+from cereal import car
 from selfdrive.car.hyundai.values import DBC, STEER_THRESHOLD, FEATURES
 from selfdrive.can.parser import CANParser
 from selfdrive.config import Conversions as CV
@@ -32,7 +33,7 @@ def get_can_parser(CP):
     ("CYL_PRES", "ESP12", 0),
 
     ("CF_Clu_CruiseSwState", "CLU11", 0),
-    ("CF_Clu_CruiseSwMain" , "CLU11", 0),
+    ("CF_Clu_CruiseSwMain", "CLU11", 0),
     ("CF_Clu_SldMainSW", "CLU11", 0),
     ("CF_Clu_ParityBit1", "CLU11", 0),
     ("CF_Clu_VanzDecimal" , "CLU11", 0),
@@ -53,6 +54,7 @@ def get_can_parser(CP):
 
     ("ACCEnable", "TCS13", 0),
     ("ACC_REQ", "TCS13", 0),
+    ("BrakeLight", "TCS13", 0),
     ("DriverBraking", "TCS13", 0),
     ("DriverOverride", "TCS13", 0),
 
