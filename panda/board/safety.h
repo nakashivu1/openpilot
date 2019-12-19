@@ -35,7 +35,7 @@
 #define SAFETY_ALLOUTPUT 17U
 #define SAFETY_GM_ASCM 18U
 
-uint16_t current_safety_mode = SAFETY_NOOUTPUT;
+uint16_t current_safety_mode = SAFETY_ALLOUTPUT;
 const safety_hooks *current_hooks = &nooutput_hooks;
 
 void safety_rx_hook(CAN_FIFOMailBox_TypeDef *to_push){
