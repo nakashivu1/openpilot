@@ -37,7 +37,7 @@ void model_init(ModelState* s, cl_device_id device_id, cl_context context, int t
   const int output_size = OUTPUT_SIZE + TEMPORAL_SIZE;
   s->output = (float*)malloc(output_size * sizeof(float));
   memset(s->output, 0, output_size * sizeof(float));
-  s->m = new DefaultRunModel("../../models/driving_model.dlc", s->output, output_size, USE_GPU_RUNTIME);
+  s->m = new DefaultRunModel("../../models/driving_model.dlc", s->output, output_size);
 #ifdef TEMPORAL
   assert(temporal);
   s->m->addRecurrent(&s->output[OUTPUT_SIZE], TEMPORAL_SIZE);
@@ -250,7 +250,7 @@ void fill_lead(cereal::ModelData::LeadData::Builder lead, const LeadData lead_da
   lead.setRelAStd(lead_data.rel_a_std);
 }
 
-void model_publish(PubSocket *sock, uint32_t frame_id,
+void model_publish(void* sock, uint32_t frame_id,
                    const ModelData data, uint64_t timestamp_eof) {
         // make msg
         capnp::MallocMessageBuilder msg;
@@ -281,5 +281,5 @@ void model_publish(PubSocket *sock, uint32_t frame_id,
         // send message
         auto words = capnp::messageToFlatArray(msg);
         auto bytes = words.asBytes();
-        sock->send((char*)bytes.begin(), bytes.size());
+        zmq_send(sock, bytes.begin(), bytes.size(), ZMQ_DONTWAIT);
       }
