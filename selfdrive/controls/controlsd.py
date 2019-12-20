@@ -112,15 +112,15 @@ def data_sample(CI, CC, sm, can_poller, can_sock, cal_status, cal_perc, overtemp
   # we want to disengage openpilot. However the status from the panda goes through
   # another socket other than the CAN messages and one can arrive earlier than the other.
   # Therefore we allow a mismatch for two samples, then we trigger the disengagement.
-  if not enabled:
-    mismatch_counter = 0
+ # if not enabled:
+ #   mismatch_counter = 0
 
-  if sm.updated['health']:
-    controls_allowed = sm['health'].controlsAllowed
-    if not controls_allowed and enabled:
-      mismatch_counter += 1
-    if mismatch_counter >= 2:
-      events.append(create_event('controlsMismatch', [ET.IMMEDIATE_DISABLE]))
+ # if sm.updated['health']:
+ #   controls_allowed = sm['health'].controlsAllowed
+ #   if not controls_allowed and enabled:
+ #     mismatch_counter += 1
+ #   if mismatch_counter >= 2:
+ #     events.append(create_event('controlsMismatch', [ET.IMMEDIATE_DISABLE]))
 
   # Driver monitoring
   if sm.updated['driverMonitoring']:
