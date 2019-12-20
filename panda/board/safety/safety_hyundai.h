@@ -15,7 +15,7 @@ int hyundai_cruise_engaged_last = 0;
 uint32_t hyundai_ts_last = 0;
 struct sample_t hyundai_torque_driver;         // last few driver torques measured
 int OP_LKAS_live = 0;
-bool hyundai_LKAS_forwarded = 0;
+int hyundai_LKAS_forwarded = 0;
 bool hyundai_has_scc = 0;
 
 static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
@@ -31,7 +31,7 @@ static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   // check if stock camera ECU is still online
   if ((bus == 0) && (addr == 832)) {
     hyundai_camera_detected = 1;
-    controls_allowed = 1;
+    controls_allowed = 0;
   }
 
   // Find out which bus the camera is on
@@ -88,11 +88,11 @@ static int hyundai_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     uint32_t ts = TIM2->CNT;
     bool violation = 0;
 
-    if (!hyundai_LKAS_forwarded) {
+    if (hyundai_LKAS_forwarded < 1) {
       OP_LKAS_live = 20;
     }
-    if ((hyundai_LKAS_forwarded) && (!OP_LKAS_live)) {
-      hyundai_LKAS_forwarded = 0;
+    if (hyundai_LKAS_forwarded > 0) {
+      hyundai_LKAS_forwarded -= 1;
       return 1;
     }
     if (controls_allowed) {
@@ -175,7 +175,7 @@ static int hyundai_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
         bus_fwd = 10;
       }
       else if (!OP_LKAS_live) {
-        hyundai_LKAS_forwarded = 1;
+        hyundai_LKAS_forwarded = 2;
         bus_fwd = 10;
       }
       else {
