@@ -4,7 +4,7 @@ from common.realtime import sec_since_boot
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import EventTypes as ET, create_event
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.hyundai.carstate import CarState, get_can_parser, get_camera_parser
+from selfdrive.car.hyundai.carstate import CarState, get_can_parser, get_mdps_parser, get_camera_parser
 from selfdrive.car.hyundai.values import ECU, ECU_FINGERPRINT, CAR, FINGERPRINTS, FEATURES
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -28,6 +28,7 @@ class CarInterface(CarInterfaceBase):
     # *** init the major players ***
     self.CS = CarState(CP)
     self.cp = get_can_parser(CP)
+    self.cp_mdps = get_mdps_parser(CP)
     self.cp_cam = get_camera_parser(CP)
 
     self.CC = None
@@ -82,7 +83,7 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.682
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.11], [0.02]]
-      ret.minSteerSpeed = 32 * CV.MPH_TO_MS
+      ret.minSteerSpeed = 3 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
       ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 2060. + STD_CARGO_KG
@@ -185,7 +186,7 @@ class CarInterface(CarInterfaceBase):
     self.cp.update_strings(can_strings)
     self.cp_cam.update_strings(can_strings)
 
-    self.CS.update(self.cp, self.cp_cam)
+    self.CS.update(self.cp, self.cp_mdps, self.cp_cam)
     # create message
     ret = car.CarState.new_message()
 
@@ -312,7 +313,7 @@ class CarInterface(CarInterfaceBase):
   def apply(self, c):
     
     # Fix for Genesis hard fault when steer request sent while the speed is low 
-    enable = 0 if self.CS.v_ego < self.CP.minSteerSpeed and self.CP.carFingerprint == CAR.GENESIS else c.enabled
+    enable = 0 if self.CS.v_ego < self.CP.minSteerSpeed else c.enabled
     
     can_sends = self.CC.update(enable, self.CS, self.frame, c.actuators,
                                c.cruiseControl.cancel, c.hudControl.visualAlert, c.hudControl.leftLaneVisible,
