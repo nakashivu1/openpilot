@@ -84,7 +84,6 @@ def get_can_parser(CP):
       ("SCC12", 50),
     ]
   else:
-  if CP.carFingerprint in FEATURES["non_scc"]:
     signals += [
       ("CRUISE_LAMP_M", "EMS16", 0),
       ("CF_Lvr_CruiseSet", "LVR12", 0),
