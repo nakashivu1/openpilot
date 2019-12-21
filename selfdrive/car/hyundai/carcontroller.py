@@ -1,4 +1,5 @@
 from cereal import car
+from common.numpy_fast import clip
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.hyundai.hyundaican import create_lkas11, create_clu11
 from selfdrive.car.hyundai.values import CAR, Buttons, SteerLimitParams
@@ -53,8 +54,8 @@ class CarController():
     apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
     self.steer_rate_limited = new_steer != apply_steer
 
-    # Fix for sharp turns mdps fault and Genesis hard fault at low speed
-    lkas_active = enabled and abs(CS.angle_steers) < 100. and (not CS.v_ego < 16.7 or not self.car_fingerprint == CAR.GENESIS)
+    lkas_active = enabled and abs(CS.angle_steers) < 100.
+
     if not lkas_active:
       apply_steer = 0
 
@@ -71,11 +72,14 @@ class CarController():
     lkas11_cnt = frame % 0x10
     clu11_cnt = frame % 0x10
 
-    can_sends.append(create_lkas11(self.packer, self.car_fingerprint, apply_steer, steer_req, lkas11_cnt, lkas_active,
+    can_sends.extend(create_lkas11(self.packer, self.car_fingerprint, apply_steer, steer_req, lkas11_cnt, lkas_active,
                                    CS.lkas11, hud_alert, lane_visible, left_lane_depart, right_lane_depart, keep_stock=True))
 
+    speed = 60 if CS.v_ego < 17. else CS.clu11["CF_Clu_Vanz"]
+    can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.NONE, speed, clu11_cnt))
+
     if pcm_cancel_cmd:
-      can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.CANCEL, clu11_cnt))
+      can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.CANCEL, speed, clu11_cnt))
 
     if CS.stopped:
       # run only first time when the car stopped
@@ -85,7 +89,7 @@ class CarController():
         self.resume_cnt = 0
       # when lead car starts moving, create 6 RES msgs
       elif CS.lead_distance > self.last_lead_distance and (frame - self.last_resume_frame) > 5:
-        can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.RES_ACCEL, clu11_cnt))
+        can_sends.append(create_clu11(self.packer, CS.clu11, Buttons.RES_ACCEL, speed, clu11_cnt))
         self.resume_cnt += 1
         # interval after 6 msgs
         if self.resume_cnt > 5:
@@ -94,6 +98,5 @@ class CarController():
     # reset lead distnce after the car starts moving
     elif self.last_lead_distance != 0:
       self.last_lead_distance = 0  
-
 
     return can_sends
