@@ -3,7 +3,7 @@ from cereal import car
 from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.drive_helpers import EventTypes as ET, create_event
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.car.hyundai.carstate import CarState, get_can_parser, get_camera_parser
+from selfdrive.car.hyundai.carstate import CarState, get_can_parser, get_mdps_parser, get_camera_parser
 from selfdrive.car.hyundai.values import ECU, ECU_FINGERPRINT, CAR, FINGERPRINTS
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -21,10 +21,12 @@ class CarInterface(CarInterfaceBase):
     self.brake_pressed_prev = False
     self.cruise_enabled_prev = False
     self.low_speed_alert = False
+    self.vEgo_prev = False
 
     # *** init the major players ***
     self.CS = CarState(CP)
     self.cp = get_can_parser(CP)
+    self.cp_mdps = get_mdps_parser(CP)
     self.cp_cam = get_camera_parser(CP)
 
     self.CC = None
@@ -48,9 +50,11 @@ class CarInterface(CarInterfaceBase):
     ret.enableCruise = True  # stock acc
 
     ret.steerActuatorDelay = 0.1  # Default delay
-    ret.steerRateCost = 0.5
+    ret.steerRateCost = 0.52
     ret.steerLimitTimer = 0.4
-    tire_stiffness_factor = 1.
+    tire_stiffness_factor = 0.7
+
+    ret.minEnableSpeed = -1.   # enable is done by stock ACC, so ignore this
 
     if candidate in [CAR.SANTA_FE, CAR.SANTA_FE_1]:
       ret.lateralTuning.pid.kf = 0.00005
@@ -71,22 +75,24 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
       ret.minSteerSpeed = 0.
     elif candidate in [CAR.ELANTRA, CAR.ELANTRA_GT_I30]:
-      ret.lateralTuning.pid.kf = 0.00006
+      ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 1275. + STD_CARGO_KG
       ret.wheelbase = 2.7
       ret.steerRatio = 13.73   #Spec
-      tire_stiffness_factor = 0.385
+      tire_stiffness_factor = 0.685
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
-      ret.minSteerSpeed = 32 * CV.MPH_TO_MS
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.10], [0.02]]
+      ret.minSteerSpeed = 31 * CV.MPH_TO_MS
+      ret.minEnableSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
-      ret.lateralTuning.pid.kf = 0.00005
+      ret.lateralTuning.pid.kf = 0.00010
       ret.mass = 2060. + STD_CARGO_KG
       ret.wheelbase = 3.01
-      ret.steerRatio = 16.5
+      ret.steerRatio = 12.2
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.16], [0.01]]
-      ret.minSteerSpeed = 60 * CV.KPH_TO_MS
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.24], [0.08]]
+      ret.minSteerSpeed = 5 * CV.KPH_TO_MS
+      ret.minEnableSpeed = 15 * CV.KPH_TO_MS
     elif candidate in [CAR.GENESIS_G90, CAR.GENESIS_G80]:
       ret.mass = 2200
       ret.wheelbase = 3.15
@@ -144,7 +150,6 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
 
 
-    ret.minEnableSpeed = -1.   # enable is done by stock ACC, so ignore this
     ret.longitudinalTuning.kpBP = [0.]
     ret.longitudinalTuning.kpV = [0.]
     ret.longitudinalTuning.kiBP = [0.]
@@ -188,9 +193,10 @@ class CarInterface(CarInterfaceBase):
   def update(self, c, can_strings):
     # ******************* do can recv *******************
     self.cp.update_strings(can_strings)
+    self.cp_mdps.update_strings(can_strings)
     self.cp_cam.update_strings(can_strings)
 
-    self.CS.update(self.cp, self.cp_cam)
+    self.CS.update(self.cp, self.cp_mdps, self.cp_cam)
     # create message
     ret = car.CarState.new_message()
 
@@ -227,7 +233,7 @@ class CarInterface(CarInterfaceBase):
     ret.steeringPressed = self.CS.steer_override
 
     # cruise state
-    ret.cruiseState.enabled = self.CS.pcm_acc_status != 0
+    ret.cruiseState.enabled = self.CS.main_on != 0
     if self.CS.pcm_acc_status != 0:
       ret.cruiseState.speed = self.CS.cruise_set_speed
     else:
@@ -258,18 +264,18 @@ class CarInterface(CarInterfaceBase):
     ret.seatbeltUnlatched = not self.CS.seatbelt
 
     # low speed steer alert hysteresis logic (only for cars with steer cut off above 10 m/s)
-    if ret.vEgo < (self.CP.minSteerSpeed + 0.2) and self.CP.minSteerSpeed > 10.:	
-      self.low_speed_alert = True	
-    if ret.vEgo > (self.CP.minSteerSpeed + 0.7):	
+    if ret.vEgo < self.CP.minSteerSpeed and self.CP.minSteerSpeed > 10.:
+      self.low_speed_alert = True
+    if ret.vEgo > self.CP.minEnableSpeed:
       self.low_speed_alert = False
 
     events = []
-    if not ret.gearShifter == GearShifter.drive:
-      events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if ret.doorOpen:
-      events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if ret.seatbeltUnlatched:
-      events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+#    if not ret.gearShifter == GearShifter.drive:
+#      events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+#    if ret.doorOpen:
+#      events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+#    if ret.seatbeltUnlatched:
+#      events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.esp_disabled:
       events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if not self.CS.main_on:
@@ -279,18 +285,18 @@ class CarInterface(CarInterfaceBase):
     if self.CS.steer_error:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
 
-    if ret.cruiseState.enabled and not self.cruise_enabled_prev:
+    if ret.cruiseState.enabled and (not self.cruise_enabled_prev or ret.vEgo > self.CP.minEnableSpeed >= self.vEgo_prev):
       events.append(create_event('pcmEnable', [ET.ENABLE]))
     elif not ret.cruiseState.enabled:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
 
     # disable on pedals rising edge or when brake is pressed and speed isn't zero
-    if (ret.gasPressed and not self.gas_pressed_prev) or \
-      (ret.brakePressed and (not self.brake_pressed_prev or ret.vEgoRaw > 0.1)):
-      events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
+    #if (ret.gasPressed and not self.gas_pressed_prev) or \
+      #(ret.brakePressed and (not self.brake_pressed_prev or ret.vEgoRaw > 0.1)):
+      #events.append(create_event('pedalPressed', [ET.NO_ENTRY, ET.USER_DISABLE]))
 
-    if ret.gasPressed:
-      events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
+    #if ret.gasPressed:
+      #events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
 
     if self.low_speed_alert:
       events.append(create_event('belowSteerSpeed', [ET.WARNING]))
@@ -300,6 +306,7 @@ class CarInterface(CarInterfaceBase):
     self.gas_pressed_prev = ret.gasPressed
     self.brake_pressed_prev = ret.brakePressed
     self.cruise_enabled_prev = ret.cruiseState.enabled
+    self.vEgo_prev = ret.vEgo
 
     return ret.as_reader()
 
