@@ -168,7 +168,6 @@ class PathPlanner():
         self.pre_lane_change_timer = 0.0
 
       if not self.alc_nudge_less:
-      else:
         if lane_change_direction == LaneChangeDirection.left:
           torque_applied = sm['carState'].steeringTorque > 0 and sm['carState'].steeringPressed
         else:
