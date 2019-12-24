@@ -303,8 +303,10 @@ class CarInterface(CarInterfaceBase):
 #      events.append(create_event('pedalPressed', [ET.PRE_ENABLE]))
 
 #    if self.low_speed_alert and not self.CS.mdps_bus :
-#      events.append(create_event('belowSteerSpeed', [ET.WARNING]))
+#      events.append(create_event('turningIndicatorOn', [ET.WARNING]))
 
+    if self.turning_indicator_alert:
+      events.append(create_event('turningIndicatorOn', [ET.WARNING]))
     ret.events = events
 
     self.gas_pressed_prev = ret.gasPressed
