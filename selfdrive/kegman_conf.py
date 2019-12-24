@@ -110,8 +110,12 @@ class kegman_conf():
         self.element_updated = True
 
       if "ALCnudgeLess" not in self.config:
-        self.config.update({"ALCnudgeLess":"0"})
-        self.config.update({"ALCminSpeed":"20.1168"})
+        self.config.update({"ALCnudgeLess":"1"})
+        self.config.update({"ALCminSpeed":"17"})
+        self.element_updated = True
+
+      if "ALCtimer" not in self.config:
+        self.config.update(["ALCtimer":"2.0"})
         self.element_updated = True
 
       if "CruiseDelta" not in self.config:
@@ -136,7 +140,7 @@ class kegman_conf():
 		     "1barHwy":"0.4", "2barHwy":"0.3", "3barHwy":"0.1", \
 		     "steerRatio":"-1", "steerRateCost":"-1", "slowOnCurves":"0", "Kf":"-1", \
 		     "sR_boost":"0", "sR_BP0":"0", "sR_BP1":"0", "sR_time":"1", \
-                     "ALCnudgeLess":"0", "ALCminSpeed":"20.1168", "CrusieDelta":"8", "CruiseEnableMin":"40"}
+                     "ALCnudgeLess":"1", "ALCminSpeed":"17", "ALCtimer":"2.0", "CrusieDelta":"8", "CruiseEnableMin":"40"}
 
 
       self.write_config(self.config)
