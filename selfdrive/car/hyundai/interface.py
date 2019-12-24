@@ -270,6 +270,9 @@ class CarInterface(CarInterfaceBase):
     if ret.vEgo > self.CP.minEnableSpeed:
       self.low_speed_alert = False
 
+    # turning indicator alert hysteresis logic
+    self.turning_indicator_alert = True if (self.CS.left_blinker_on or self.CS.right_blinker_on) and self.CS.v_ego < 15. else False
+
     events = []
 #    if not ret.gearShifter == GearShifter.drive:
 #      events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
