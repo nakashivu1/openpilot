@@ -1,25 +1,32 @@
-const int HYUNDAI_MAX_STEER = 255;             // like stock
-const int HYUNDAI_MAX_RT_DELTA = 112;          // max delta torque allowed for real time checks
+const int HYUNDAI_MAX_STEER = 409;             // like stock
+const int HYUNDAI_MAX_RT_DELTA = 200;          // max delta torque allowed for real time checks
 const uint32_t HYUNDAI_RT_INTERVAL = 250000;    // 250ms between real time checks
-const int HYUNDAI_MAX_RATE_UP = 3;
-const int HYUNDAI_MAX_RATE_DOWN = 7;
+const int HYUNDAI_MAX_RATE_UP = 5;
+const int HYUNDAI_MAX_RATE_DOWN = 10;
 const int HYUNDAI_DRIVER_TORQUE_ALLOWANCE = 50;
 const int HYUNDAI_DRIVER_TORQUE_FACTOR = 2;
 
-const AddrBus HYUNDAI_TX_MSGS[] = {{832, 0}, {1265, 0}};
+const AddrBus HYUNDAI_TX_MSGS[] = {{832, 0}, {832, 1}, {1265, 0}, {1265, 1}, {1265, 2}, {593, 2}, {1057, 0}};
 
 int hyundai_rt_torque_last = 0;
 int hyundai_desired_torque_last = 0;
 int hyundai_cruise_engaged_last = 0;
 uint32_t hyundai_ts_last = 0;
 struct sample_t hyundai_torque_driver;         // last few driver torques measured
+bool hyundai_has_scc = false;
+int OP_LKAS_live = 0;
+int OP_MDPS_live = 0;
+int OP_CLU_live = 0;
+int OP_SCC_live = 0;
+int hyundai_mdps_bus = 0;
+bool hyundai_forward_bus1 = false;
 
 static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   int bus = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
 
-  if (addr == 897) {
-    int torque_driver_new = ((GET_BYTES_04(to_push) >> 11) & 0xfff) - 2048;
+  if (addr == 593) {
+    int torque_driver_new = (GET_BYTES_04(to_push) & 0x7ff) - 1024;
     // update array of samples
     update_sample(&hyundai_torque_driver, torque_driver_new);
   }
@@ -28,11 +35,18 @@ static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (bus == 0) && (addr == 832)) {
     relay_malfunction = true;
   }
-
+  // check if we have a MDPS or SCC on Bus1
+  if ((bus == 1) && (addr == 593 || addr == 897 || addr == 1057)) {
+    if (hyundai_forward_bus1 != true) {
+	  if (addr != 1057) {hyundai_mdps_bus = bus;}
+      hyundai_forward_bus1 = true;
+	}
+  }
   // enter controls on rising edge of ACC, exit controls on ACC off
-  if (addr == 1057) {
-    // 2 bits: 13-14
-    int cruise_engaged = (GET_BYTES_04(to_push) >> 13) & 0x3;
+  if (addr == 1056) {
+    hyundai_has_scc = 1;
+    // first bit
+    int cruise_engaged = GET_BYTES_04(to_push) & 0x1; // ACC main_on signal
     if (cruise_engaged && !hyundai_cruise_engaged_last) {
       controls_allowed = 1;
     }
@@ -41,6 +55,19 @@ static void hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     }
     hyundai_cruise_engaged_last = cruise_engaged;
   }
+  // cruise control for car without SCC
+  if ((addr == 608) && (!hyundai_has_scc)) {
+    // bit 25
+    int cruise_engaged = (GET_BYTES_04(to_push) >> 25 & 0x1); // ACC main_on signal
+    if (cruise_engaged && !hyundai_cruise_engaged_last) {
+      controls_allowed = 1;
+    }
+    if (!cruise_engaged) {
+      controls_allowed = 0;
+    }
+    hyundai_cruise_engaged_last = cruise_engaged;
+  }
+
 }
 
 static int hyundai_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
@@ -59,6 +86,7 @@ static int hyundai_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
 
   // LKA STEER: safety check
   if (addr == 832) {
+    OP_LKAS_live = 20;
     int desired_torque = ((GET_BYTES_04(to_send) >> 16) & 0x7ff) - 1024;
     uint32_t ts = TIM2->CNT;
     bool violation = 0;
@@ -113,6 +141,10 @@ static int hyundai_tx_hook(CAN_FIFOMailBox_TypeDef *to_send) {
     }
   }
 
+  if (addr == 593) {OP_MDPS_live = 150;}  // 1.5 second timeout to reset LKAS button after cancel cmd
+  if ((addr == 1265) && (GET_BYTES_04(to_send) & 0x7) == 0) {OP_CLU_live = 20;} // only count non-button msg
+  if (addr == 1057) {OP_SCC_live = 20;}
+
   // 1 allows the message through
   return tx;
 }
@@ -121,12 +153,57 @@ static int hyundai_fwd_hook(int bus_num, CAN_FIFOMailBox_TypeDef *to_fwd) {
 
   int bus_fwd = -1;
   int addr = GET_ADDR(to_fwd);
+  int fwd_to_bus1 = -1;
+  if (hyundai_forward_bus1){fwd_to_bus1 = 1;}
+
   // forward cam to ccan and viceversa, except lkas cmd
   if (!relay_malfunction) {
     if (bus_num == 0) {
-      bus_fwd = 2;
+      if (!OP_CLU_live || addr != 1265 || !hyundai_mdps_bus) {
+        if (!OP_MDPS_live || addr != 593) {
+		  bus_fwd = hyundai_forward_bus1 ? 12 : 2;
+		} else {
+	      bus_fwd = fwd_to_bus1;  // EON create MDPS for LKAS
+		  OP_MDPS_live -= 1;
+		}
+      } else {
+        bus_fwd = 2; // EON create CLU12 for MDPS
+		OP_CLU_live -= 1;
+      }
     }
-    if ((bus_num == 2) && (addr != 832)) {
+    if (bus_num == 1 && hyundai_forward_bus1) {
+      if (!OP_MDPS_live || addr != 593) {
+        if (!OP_SCC_live || addr != 1057) {
+		  bus_fwd = 20;
+		} else {
+	      bus_fwd = 2;  // EON create SCC12 for Car
+		  OP_SCC_live -= 1;
+		}
+	  } else {
+	    bus_fwd = 0;  // EON create MDPS for LKAS
+		OP_MDPS_live -= 1;
+	  }
+    }
+    if (bus_num == 2) {
+      if (addr != 832 || !OP_LKAS_live) {
+        if ((addr != 1057) || (!OP_SCC_live)) {
+          bus_fwd = hyundai_forward_bus1 ? 10 : 0;
+        } else {
+          bus_fwd = fwd_to_bus1;  // EON create SCC12 for Car
+		  OP_SCC_live -= 1;
+        }
+      } else if (!hyundai_mdps_bus) {
+		bus_fwd = fwd_to_bus1; // EON create LKAS for Car
+        OP_LKAS_live -= 1; 
+      } else {
+        OP_LKAS_live -= 1; // EON create LKAS for Car and MDPS
+      }
+    }
+  } else {
+    if (bus_num == 0) {
+      bus_fwd = fwd_to_bus1;
+    }
+    if (bus_num == 1 && hyundai_forward_bus1) {
       bus_fwd = 0;
     }
   }

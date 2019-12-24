@@ -165,7 +165,7 @@ def state_transition(frame, CS, CP, state, events, soft_disable_timer, v_cruise_
   # decrease the soft disable timer at every step, as it's reset on
   # entrance in SOFT_DISABLING state
   soft_disable_timer = max(0, soft_disable_timer - 1)
-  
+
   # Reset v_cruise_kph to 0
   if get_events(events, [ET.RESET_V_CRUISE]):
     v_cruise_kph = 0
@@ -295,13 +295,13 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   actuators.steer, actuators.steerAngle, lac_log = LaC.update(active, CS.vEgo, CS.steeringAngle, CS.steeringRate, CS.steeringTorqueEps, CS.steeringPressed, CS.steeringRateLimited, CP, path_plan)
 
   # Send a "steering required alert" if saturation count has reached the limit
-  if lac_log.saturated and not CS.steeringPressed:
+#  if lac_log.saturated and not CS.steeringPressed:
     # Check if we deviated from the path
-    left_deviation = actuators.steer > 0 and path_plan.dPoly[3] > 0.1
-    right_deviation = actuators.steer < 0 and path_plan.dPoly[3] < -0.1
+#    left_deviation = actuators.steer > 0 and path_plan.dPoly[3] > 0.1
+#    right_deviation = actuators.steer < 0 and path_plan.dPoly[3] < -0.1
 
-    if left_deviation or right_deviation:
-      AM.add(frame, "steerSaturated", enabled)
+#    if left_deviation or right_deviation:
+#      AM.add(frame, "steerSaturated", enabled)
 
   # Parse permanent warnings to display constantly
   for e in get_events(events, [ET.PERMANENT]):
@@ -548,7 +548,7 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
   # controlsd is driven by can recv, expected at 100Hz
   rk = Ratekeeper(100, print_delay_threshold=None)
 
-  internet_needed = params.get("Offroad_ConnectivityNeeded", encoding='utf8') is not None
+#  internet_needed = params.get("Offroad_ConnectivityNeeded", encoding='utf8') is not None
 
   prof = Profiler(False)  # off by default
 
@@ -561,8 +561,8 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
     prof.checkpoint("Sample")
 
     # Create alerts
-    if not sm.all_alive_and_valid():
-      events.append(create_event('commIssue', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+#    if not sm.all_alive_and_valid():
+#      events.append(create_event('commIssue', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if not sm['pathPlan'].mpcSolutionValid:
       events.append(create_event('plannerError', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if not sm['pathPlan'].sensorValid:
@@ -579,14 +579,14 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
       events.append(create_event('canError', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if not sounds_available:
       events.append(create_event('soundsUnavailable', [ET.NO_ENTRY, ET.PERMANENT]))
-    if internet_needed:
-      events.append(create_event('internetConnectivityNeeded', [ET.NO_ENTRY, ET.PERMANENT]))
-    if community_feature_disallowed:
-      events.append(create_event('communityFeatureDisallowed', [ET.PERMANENT]))
+#    if internet_needed:
+#      events.append(create_event('internetConnectivityNeeded', [ET.NO_ENTRY, ET.PERMANENT]))
+#    if community_feature_disallowed:
+#      events.append(create_event('communityFeatureDisallowed', [ET.PERMANENT]))
 
     # Only allow engagement with brake pressed when stopped behind another stopped car
-    if CS.brakePressed and sm['plan'].vTargetFuture >= STARTING_TARGET_SPEED and not CP.radarOffCan and CS.vEgo < 0.3:
-      events.append(create_event('noTarget', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+#    if CS.brakePressed and sm['plan'].vTargetFuture >= STARTING_TARGET_SPEED and not CP.radarOffCan and CS.vEgo < 0.3:
+#      events.append(create_event('noTarget', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
     if not read_only:
       # update control state
