@@ -91,6 +91,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     ldw @65;
     manualSteeringRequired @66;
     manualSteeringRequiredBlinkersOn @67;
+    turningIndicatorOn @68;
   }
 }
 
