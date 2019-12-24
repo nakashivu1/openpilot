@@ -76,7 +76,7 @@ class CarController():
 
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
-    if CS.v_ego < 7
+    if CS.v_ego < 7:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
     else:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
