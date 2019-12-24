@@ -283,6 +283,8 @@ class CarState():
     # update prevs, update must run once per Loop
     self.prev_left_blinker_on = self.left_blinker_on
     self.prev_right_blinker_on = self.right_blinker_on
+    self.prev_left_blinker_flash = self.left_blinker_flash
+    self.prev_right_blinker_flash = self.right_blinker_flash
 
     self.door_all_closed = True
     self.seatbelt = cp.vl["CGW1"]['CF_Gway_DrvSeatBeltSw']
