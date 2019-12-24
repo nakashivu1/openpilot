@@ -14,6 +14,14 @@ class SteerLimitParams:
   STEER_DRIVER_ALLOWANCE = 50
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
+  
+class LowSpeedSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 275
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 3
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
@@ -22,7 +30,7 @@ def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
 
   hud_alert = 0
   if visual_alert == VisualAlert.steerRequired:
-    hud_alert = 3
+    hud_alert = 4
 
   # initialize to no line visible
   
@@ -68,12 +76,15 @@ class CarController():
 
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
-    apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
+    if CS.v_ego < 7
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
+    else:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
     self.steer_rate_limited = new_steer != apply_steer
 
     lkas_active = enabled and abs(CS.angle_steers) < 90. and (not self.lkas_button or CS.lkas_button_on)
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
-    if CS.v_ego < 16.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
+    if CS.steer_override and CS.v_ego < 7:
       lkas_active = 0
     if (CS.left_blinker_on or CS.right_blinker_on) and CS.v_ego < 20.: # Disable steering when blinker on and belwo ALC speed
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
@@ -93,7 +104,7 @@ class CarController():
             left_line, right_line,left_lane_depart, right_lane_depart)
 
     clu11_speed = CS.clu11["CF_Clu_Vanz"]
-    enabled_speed = 38 if CS.is_set_speed_in_mph  else 60
+    enabled_speed = 34 if CS.is_set_speed_in_mph  else 55
     if clu11_speed > enabled_speed or not lkas_active:
       enabled_speed = clu11_speed
 
