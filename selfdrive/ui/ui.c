@@ -1361,10 +1361,10 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     NVGcolor val_color = nvgRGBA(0, 255, 0, 200);
       //show Orange if more than 30 degrees
       //show red if  more than 50 degrees
-      if(((int)(scene->angleSteers) < -25) || ((int)(scene->angleSteers) > 25)) {
-        val_color = nvgRGBA(255, 188, 3, 200);
+      if(((int)(scene->angleSteers) < -30) || ((int)(scene->angleSteers) > 30)) {
+        val_color = nvgRGBA(255, 175, 3, 200);
       }
-      if(((int)(scene->angleSteers) < -50) || ((int)(scene->angleSteers) > 50)) {
+      if(((int)(scene->angleSteers) < -55) || ((int)(scene->angleSteers) > 55)) {
         val_color = nvgRGBA(255, 0, 0, 200);
       }
       // steering is in degrees
@@ -1383,16 +1383,20 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     char val_str[16];
     char uom_str[6];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
+    if (scene->engaged) {
       //show Orange if more than 30 degrees
       //show red if  more than 50 degrees
-      if(((int)(scene->angleSteersDes) < -25) || ((int)(scene->angleSteersDes) > 25)) {
-        val_color = nvgRGBA(255, 188, 3, 200);
+      if(((int)(scene->angleSteersDes) < -30) || ((int)(scene->angleSteersDes) > 30)) {
+        val_color = nvgRGBA(255, 255, 255, 200);
       }
       if(((int)(scene->angleSteersDes) < -50) || ((int)(scene->angleSteersDes) > 50)) {
-        val_color = nvgRGBA(255, 0, 0, 200);
+        val_color = nvgRGBA(255, 255, 255, 200);
       }
       // steering is in degrees
       snprintf(val_str, sizeof(val_str), "%.1f°",(scene->angleSteersDes));
+    } else {
+       snprintf(val_str, sizeof(val_str), "-");
+    }
 
       snprintf(uom_str, sizeof(uom_str), "");
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "DESIR STEER",
@@ -1790,11 +1794,11 @@ static void ui_draw_vision_event(UIState *s) {
       nvgBeginPath(s->vg);
       nvgCircle(s->vg, bg_wheel_x, (bg_wheel_y + (bdr_is*1.5)), bg_wheel_size);
       if (is_engaged) {
-        nvgFillColor(s->vg, nvgRGBA(23, 134, 68, 255));
+        nvgFillColor(s->vg, nvgRGBA(23, 134, 68, 180));
       } else if (is_warning) {
-        nvgFillColor(s->vg, nvgRGBA(218, 111, 37, 255));
+        nvgFillColor(s->vg, nvgRGBA(218, 111, 37, 180));
       } else if (is_engageable) {
-        nvgFillColor(s->vg, nvgRGBA(23, 51, 73, 255));
+        nvgFillColor(s->vg, nvgRGBA(23, 51, 73, 180));
       }
       nvgFill(s->vg);
       img_wheel_alpha = 1.0f;
