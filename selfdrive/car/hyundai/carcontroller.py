@@ -122,14 +122,14 @@ class CarController():
                                    CS.lkas11, hud_alert, lane_visible, left_lane_depart, right_lane_depart, keep_stock=True))
       can_sends.append(create_clu11(self.packer, CS.mdps_bus, CS.clu11, Buttons.NONE, enabled_speed, clu11_cnt))
 
-    if pcm_cancel_cmd and self.longcontrol:
-      can_sends.append(create_clu11(self.packer, CS.scc_bus, CS.clu11, Buttons.CANCEL, clu11_speed, clu11_cnt))
-    elif self.lkas_button: # send mdps12 to LKAS to prevent LKAS error if no cancel cmd
+#    if pcm_cancel_cmd and self.longcontrol:
+#      can_sends.append(create_clu11(self.packer, CS.scc_bus, CS.clu11, Buttons.CANCEL, clu11_speed, clu11_cnt))
+    if self.lkas_button: # send mdps12 to LKAS to prevent LKAS error if no cancel cmd
       can_sends.append(create_mdps12(self.packer, self.car_fingerprint, mdps12_cnt, CS.mdps12))
 
-    if self.longcontrol and frame % 2:
-      can_sends.append(create_scc12(self.packer, apply_accel, enabled, self.scc12_cnt, CS.scc12))
-      self.scc12_cnt += 1
+#    if self.longcontrol and frame % 2:
+#      can_sends.append(create_scc12(self.packer, apply_accel, enabled, self.scc12_cnt, CS.scc12))
+#      self.scc12_cnt += 1
 
     if CS.stopped:
       # run only first time when the car stopped
