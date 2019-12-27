@@ -299,6 +299,8 @@ class CarState():
     # update prevs, update must run once per Loop
     self.prev_left_blinker_on = self.left_blinker_on
     self.prev_right_blinker_on = self.right_blinker_on
+    self.prev_left_blinker_flash = self.left_blinker_flash
+    self.prev_right_blinker_flash = self.right_blinker_flash
 
     self.door_all_closed = True
     self.seatbelt = cp.vl["CGW1"]['CF_Gway_DrvSeatBeltSw']
@@ -344,6 +346,7 @@ class CarState():
     self.right_blinker_on = cp.vl["CGW1"]['CF_Gway_TSigRHSw']
     self.right_blinker_flash = cp.vl["CGW1"]['CF_Gway_TurnSigRh']
     self.steer_override = abs(cp_mdps.vl["MDPS12"]['CR_Mdps_StrColTq']) > STEER_THRESHOLD
+    self.steer_override_lowspeed = abs(cp_mdps.vl["MDPS12"]['CR_Mdps_StrColTq']) > 100
     self.steer_state = cp_mdps.vl["MDPS12"]['CF_Mdps_ToiActive'] #0 NOT ACTIVE, 1 ACTIVE
     self.steer_error = cp_mdps.vl["MDPS12"]['CF_Mdps_ToiUnavail']
     self.brake_error = 0
