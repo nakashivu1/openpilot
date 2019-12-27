@@ -123,8 +123,8 @@ class PathPlanner():
       elif self.lane_change_state == LaneChangeState.laneChangeFinishing and lane_change_prob < 0.2:
         self.lane_change_state = LaneChangeState.preLaneChange
 
-      # Don't allow starting lane change below 45 mph
-      if (v_ego < 45 * CV.MPH_TO_MS) and (self.lane_change_state == LaneChangeState.preLaneChange):
+      # Don't allow starting lane change below 40 mph
+      if (v_ego < 40 * CV.MPH_TO_MS) and (self.lane_change_state == LaneChangeState.preLaneChange):
         self.lane_change_state = LaneChangeState.off
 
     if self.lane_change_state in [LaneChangeState.off, LaneChangeState.preLaneChange]:
