@@ -274,7 +274,7 @@ class CarInterface(CarInterfaceBase):
       self.low_speed_alert = False
 
     # turning indicator alert hysteresis logic
-    self.turning_indicator_alert = True if (self.CS.left_blinker_flash or self.CS.right_blinker_flash) and self.CS.v_ego < 15. else False
+    self.turning_indicator_alert = True if (self.CS.left_blinker_flash or self.CS.right_blinker_flash) and self.CS.v_ego < 17.5 else False
 
     events = []
 #    if not ret.gearShifter == GearShifter.drive:
