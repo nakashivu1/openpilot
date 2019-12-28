@@ -182,7 +182,7 @@ typedef struct UIScene {
   //BB CPU TEMP
   uint16_t maxCpuTemp;
   uint32_t maxBatTemp;
-  float gpsAccuracy;
+ // float gpsAccuracy;
   float freeSpace;
   float angleSteers;
   float angleSteersDes;
