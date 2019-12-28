@@ -16,7 +16,7 @@ class SteerLimitParams:
   STEER_DRIVER_FACTOR = 1
   
 class LowSpeedSteerLimitParams(SteerLimitParams):
-  STEER_MAX = 275
+  STEER_MAX = 300
   STEER_DELTA_UP = 2
   STEER_DELTA_DOWN = 3
   STEER_DRIVER_ALLOWANCE = 50
@@ -76,7 +76,7 @@ class CarController():
 
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
-    if CS.v_ego < 7:
+    if CS.v_ego < 10:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
     else:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
@@ -84,11 +84,11 @@ class CarController():
 
     lkas_active = enabled and abs(CS.angle_steers) < 90. and (not self.lkas_button or CS.lkas_button_on)
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
-    if CS.v_ego < 15.2 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
-      lkas_active = 0
+    if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
+      self.turning_signal_timer = 100
     if ((CS.left_blinker_flash or CS.right_blinker_flash) and CS.v_ego < 17.5) or (CS.steer_override_lowspeed and CS.v_ego < 7): # Disable steering when blinker on and belwo ALC speed
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
-    if self.turning_signal_timer:
+    if self.turning_signal_timer or CS.v_ego < 1:
       lkas_active = 0
       self.turning_signal_timer -= 1
 
