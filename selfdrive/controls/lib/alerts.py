@@ -65,6 +65,13 @@ ALERTS = [
       AlertStatus.userPrompt, AlertSize.small,
       Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, 0., 0., 1.),
 
+  Alert(
+      "lkasButtonOff",
+      "LKAS button off",
+      "",
+      AlertStatus.userPrompt, AlertSize.small,
+      Priority.HIGH, VisualAlert.none, AudibleAlert.none, 0., 0., .2),
+
   # Miscellaneous alerts
   Alert(
       "enable",
