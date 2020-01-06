@@ -59,15 +59,16 @@ def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
 
 class CarController():
   def __init__(self, dbc_name, car_fingerprint):
-    self.apply_steer_last = 0
-    self.car_fingerprint = car_fingerprint
-    self.last_lead_distance = 0
     self.packer = CANPacker(dbc_name)
+    self.car_fingerprint = car_fingerprint
+    self.apply_steer_last = 0
     self.steer_rate_limited = False
+    self.lkas11_cnt = 0
+    self.scc12_cnt = 0
     self.resume_cnt = 0
     self.last_resume_frame = 0
+    self.last_lead_distance = 0
     self.turning_signal_timer = 0
-    self.scc12_cnt = 0
     self.lkas_button = 1
     self.lkas_button_last = 0
     self.longcontrol = 0 #TODO: make auto
@@ -118,10 +119,14 @@ class CarController():
 
     can_sends = []
 
-    lkas11_cnt = frame % 0x10
+    if frame == 0: # initialize counts from last received count signals
+      self.lkas11_cnt = CS.lkas11["CF_Lkas_MsgCount"] + 1
+      self.scc12_cnt = CS.scc12["CR_VSM_Alive"] + 1
+
+    self.lkas11_cnt %= 0x10
+    self.scc12_cnt %= 0xF
     self.clu11_cnt = frame % 0x10
     self.mdps12_cnt = frame % 0x100
-    self.scc12_cnt %= 0xF
 
     can_sends.append(create_lkas11(self.packer, self.car_fingerprint, 0, apply_steer, steer_req, self.lkas11_cnt, lkas_active,
                                    CS.lkas11, hud_alert, lane_visible, left_lane_depart, right_lane_depart, keep_stock=True))
@@ -157,5 +162,7 @@ class CarController():
     # reset lead distnce after the car starts moving
     elif self.last_lead_distance != 0:
       self.last_lead_distance = 0  
+      
+    self.lkas11_cnt += 1
 
     return can_sends
