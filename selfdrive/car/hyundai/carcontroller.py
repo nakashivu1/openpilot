@@ -94,9 +94,9 @@ class CarController():
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
     if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
       self.turning_signal_timer = 100
-    if ((CS.left_blinker_flash or CS.right_blinker_flash) and CS.v_ego < 17.5) or (CS.steer_override_lowspeed and CS.v_ego < 7): # Disable steering when blinker on and belwo ALC speed
+    if ((CS.left_blinker_flash or CS.right_blinker_flash) and CS.v_ego < 17.5): # Disable steering when blinker on and belwo ALC speed
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
-    if self.turning_signal_timer or CS.v_ego < 1:
+    if self.turning_signal_timer:
       lkas_active = 0
       self.turning_signal_timer -= 1
 
@@ -119,21 +119,22 @@ class CarController():
     can_sends = []
 
     lkas11_cnt = frame % 0x10
-    clu11_cnt = frame % 0x10
-    mdps12_cnt = frame % 0x100
-    self.scc12_cnt %= 15
+    self.clu11_cnt = frame % 0x10
+    self.mdps12_cnt = frame % 0x100
+    self.scc12_cnt %= 0xF
 
-    can_sends.append(create_lkas11(self.packer, self.car_fingerprint, 0, apply_steer, steer_req, lkas11_cnt, lkas_active,
+    can_sends.append(create_lkas11(self.packer, self.car_fingerprint, 0, apply_steer, steer_req, self.lkas11_cnt, lkas_active,
                                    CS.lkas11, hud_alert, lane_visible, left_lane_depart, right_lane_depart, keep_stock=True))
     if CS.mdps_bus or CS.scc_bus == 1: # send lkas12 bus 1 if mdps or scc is on bus 1
-      can_sends.append(create_lkas11(self.packer, self.car_fingerprint, 1, apply_steer, steer_req, lkas11_cnt, lkas_active,
+      can_sends.append(create_lkas11(self.packer, self.car_fingerprint, 1, apply_steer, steer_req, self.lkas11_cnt, lkas_active,
                                    CS.lkas11, hud_alert, lane_visible, left_lane_depart, right_lane_depart, keep_stock=True))
-      can_sends.append(create_clu11(self.packer, CS.mdps_bus, CS.clu11, Buttons.NONE, enabled_speed, clu11_cnt))
+    if CS.mdps_bus: # send clu11 to mdps if it is not on bus 0
+      can_sends.append(create_clu11(self.packer, CS.mdps_bus, CS.clu11, Buttons.NONE, enabled_speed, self.clu11_cnt))
 
     if pcm_cancel_cmd and self.longcontrol:
-      can_sends.append(create_clu11(self.packer, CS.scc_bus, CS.clu11, Buttons.CANCEL, clu11_speed, clu11_cnt))
+      can_sends.append(create_clu11(self.packer, CS.scc_bus, CS.clu11, Buttons.CANCEL, clu11_speed, self.clu11_cnt))
     else: # send mdps12 to LKAS to prevent LKAS error if no cancel cmd
-      can_sends.append(create_mdps12(self.packer, self.car_fingerprint, mdps12_cnt, CS.mdps12))
+      can_sends.append(create_mdps12(self.packer, self.car_fingerprint, self.mdps12_cnt, CS.mdps12))
 
     if self.longcontrol and frame % 2:
       can_sends.append(create_scc12(self.packer, apply_accel, enabled, self.scc12_cnt, CS.scc12))
