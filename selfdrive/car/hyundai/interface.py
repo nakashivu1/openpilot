@@ -313,9 +313,11 @@ class CarInterface(CarInterfaceBase):
 
     if self.turning_indicator_alert:
       events.append(create_event('turningIndicatorOn', [ET.WARNING]))
-    ret.events = events
+
     if self.lkas_button_alert:
       events.append(create_event('lkasButtonOff', [ET.WARNING]))
+
+    ret.events = events
 
     self.gas_pressed_prev = ret.gasPressed
     self.brake_pressed_prev = ret.brakePressed
