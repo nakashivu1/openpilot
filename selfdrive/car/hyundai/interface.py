@@ -86,12 +86,12 @@ class CarInterface(CarInterfaceBase):
       ret.minSteerSpeed = 32 * CV.MPH_TO_MS
       ret.minEnableSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
-      ret.lateralTuning.pid.kf = 0.00009
+      ret.lateralTuning.pid.kf = 0.00006
       ret.mass = 2060. + STD_CARGO_KG
       ret.wheelbase = 3.01
       ret.steerRatio = 11.8
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.24], [0.08]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.20], [0.06]]
       ret.minSteerSpeed = 50 * CV.KPH_TO_MS
       ret.minEnableSpeed = 15 * CV.KPH_TO_MS
     elif candidate in [CAR.GENESIS_G90, CAR.GENESIS_G80]:
@@ -189,6 +189,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.mdpsBus = 1 if 593 in fingerprint[1] else 0
     ret.sccBus = 1 if 1056 in fingerprint[1] else 2 if 1056 in fingerprint[2] else 0
+    ret.autoLcaEnabled = 1
 
     return ret
 
@@ -244,6 +245,9 @@ class CarInterface(CarInterfaceBase):
       ret.cruiseState.speed = 0
     ret.cruiseState.available = bool(self.CS.main_on)
     ret.cruiseState.standstill = False
+
+    ret.lcaLeft = self.CS.lca_left != 0
+    ret.lcaRight = self.CS.lca_right != 0
 
     # TODO: button presses
     buttonEvents = []

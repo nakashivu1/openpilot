@@ -55,6 +55,10 @@ def get_can_parser(CP):
 
     ("CF_Lvr_GearInf", "LVR11", 0),        #Transmission Gear (0 = N or P, 1-8 = Fwd, 14 = Rev)
 
+    ("CF_Lca_Stat", "LCA11", 0),
+    ("CF_Lca_IndLeft", "LCA11", 0),
+    ("CF_Lca_IndRight", "LCA11", 0),
+
     ("SAS_Angle", "SAS11", 0),
     ("SAS_Speed", "SAS11", 0),
 
@@ -419,6 +423,11 @@ class CarState():
 
     self.lkas_button_on = 7 > cp_cam.vl["LKAS11"]["CF_Lkas_LdwsSysState"] != 0
     self.lkas_error = cp_cam.vl["LKAS11"]["CF_Lkas_LdwsSysState"] == 7
+
+    # Blind Spot Detection and Lane Change Assist signals
+    self.lca_state = cp.vl["LCA11"]["CF_Lca_Stat"]
+    self.lca_left = cp.vl["LCA11"]["CF_Lca_IndLeft"]
+    self.lca_right = cp.vl["LCA11"]["CF_Lca_IndRight"]
 
     # save the entire LKAS11, CLU11, SCC12 and MDPS12
     self.lkas11 = cp_cam.vl["LKAS11"]

@@ -147,6 +147,9 @@ struct CarState {
   # clutch (manual transmission only)
   clutchPressed @28 :Bool;
 
+  lcaLeft @32 :Bool;
+  lcaRight @33 :Bool;
+
   # which packets this state came from
   canMonoTimes @12: List(UInt64);
 
@@ -373,6 +376,7 @@ struct CarParams {
   communityFeature @46: Bool;  # true if a community maintained feature is detected
   mdpsBus @48: Int8;
   sccBus @49: Int8;
+  autoLcaEnabled @50: Int8;
 
   struct LateralPIDTuning {
     kpBP @0 :List(Float32);
