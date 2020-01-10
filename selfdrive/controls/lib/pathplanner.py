@@ -5,14 +5,16 @@ from selfdrive.swaglog import cloudlog
 from selfdrive.controls.lib.lateral_mpc import libmpc_py
 from selfdrive.controls.lib.drive_helpers import MPC_COST_LAT
 from selfdrive.controls.lib.lane_planner import LanePlanner
+from selfdrive.kegman_conf import kegman_conf
 from selfdrive.config import Conversions as CV
+from common.numpy_fast import interp
 import cereal.messaging as messaging
 from cereal import log
 
 LaneChangeState = log.PathPlan.LaneChangeState
 LaneChangeDirection = log.PathPlan.LaneChangeDirection
 
-LOG_MPC = os.environ.get('LOG_MPC', False)
+LOG_MPC = os.environ.get('LOG_MPC', True)
 
 DESIRES = {
   LaneChangeDirection.none: {
@@ -51,6 +53,29 @@ class PathPlanner():
     self.setup_mpc()
     self.solution_invalid_cnt = 0
     self.path_offset_i = 0.0
+
+    self.mpc_frame = 0
+    self.sR_delay_counter = 0
+    self.steerRatio_new = 0.0
+    self.sR_time = 1
+
+    kegman = kegman_conf(CP)
+    if kegman.conf['steerRatio'] == "-1":
+      self.steerRatio = CP.steerRatio
+    else:
+      self.steerRatio = float(kegman.conf['steerRatio'])
+
+    if kegman.conf['steerRateCost'] == "-1":
+      self.steerRateCost = CP.steerRateCost
+    else:
+      self.steerRateCost = float(kegman.conf['steerRateCost'])
+
+    self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
+    self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
+
+    self.steerRateCost_prev = self.steerRateCost
+    self.setup_mpc()
+
     self.lane_change_state = LaneChangeState.off
     self.lane_change_timer = 0.0
     self.prev_one_blinker = False
@@ -87,6 +112,39 @@ class PathPlanner():
     VM.update_params(sm['liveParameters'].stiffnessFactor, sm['liveParameters'].steerRatio)
     curvature_factor = VM.curvature_factor(v_ego)
 
+    # Get steerRatio and steerRateCost from kegman.json every x seconds
+    self.mpc_frame += 1
+    if self.mpc_frame % 500 == 0:
+      # live tuning through /data/openpilot/tune.py overrides interface.py settings
+      kegman = kegman_conf()
+      if kegman.conf['tuneGernby'] == "1":
+        self.steerRateCost = float(kegman.conf['steerRateCost'])
+        if self.steerRateCost != self.steerRateCost_prev:
+          self.setup_mpc()
+          self.steerRateCost_prev = self.steerRateCost
+
+        self.sR = [float(kegman.conf['steerRatio']), (float(kegman.conf['steerRatio']) + float(kegman.conf['sR_boost']))]
+        self.sRBP = [float(kegman.conf['sR_BP0']), float(kegman.conf['sR_BP1'])]
+        self.sR_time = int(float(kegman.conf['sR_time'])) * 100
+
+      self.mpc_frame = 0
+
+    if v_ego > 11.111:
+      # boost steerRatio by boost amount if desired steer angle is high
+      self.steerRatio_new = interp(abs(angle_steers), self.sRBP, self.sR)
+
+      self.sR_delay_counter += 1
+      if self.sR_delay_counter % self.sR_time != 0:
+        if self.steerRatio_new > self.steerRatio:
+          self.steerRatio = self.steerRatio_new
+      else:
+        self.steerRatio = self.steerRatio_new
+        self.sR_delay_counter = 0
+    else:
+      self.steerRatio = self.sR[0]
+
+    print("steerRatio = ", self.steerRatio)
+
     self.LP.parse_model(sm['model'])
 
     # Lane change logic
@@ -112,8 +170,6 @@ class PathPlanner():
 
       lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
 
-      # State transitions
-      # off
       if self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker:
         self.lane_change_state = LaneChangeState.preLaneChange
 
@@ -171,7 +227,7 @@ class PathPlanner():
     #   self.path_offset_i = 0.0
 
     # account for actuation delay
-    self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset, curvature_factor, VM.sR, CP.steerActuatorDelay)
+    self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset, curvature_factor, self.steerRatio, CP.steerActuatorDelay)
 
     v_ego_mpc = max(v_ego, 5.0)  # avoid mpc roughness due to low speed
     self.libmpc.run_mpc(self.cur_state, self.mpc_solution,
@@ -181,21 +237,21 @@ class PathPlanner():
     # reset to current steer angle if not active or overriding
     if active:
       delta_desired = self.mpc_solution[0].delta[1]
-      rate_desired = math.degrees(self.mpc_solution[0].rate[0] * VM.sR)
+      rate_desired = math.degrees(self.mpc_solution[0].rate[0] * self.steerRatio)
     else:
-      delta_desired = math.radians(angle_steers - angle_offset) / VM.sR
+      delta_desired = math.radians(angle_steers - angle_offset) / self.steerRatio
       rate_desired = 0.0
 
     self.cur_state[0].delta = delta_desired
 
-    self.angle_steers_des_mpc = float(math.degrees(delta_desired * VM.sR) + angle_offset)
+    self.angle_steers_des_mpc = float(math.degrees(delta_desired * self.steerRatio) + angle_offset)
 
     #  Check for infeasable MPC solution
     mpc_nans = any(math.isnan(x) for x in self.mpc_solution[0].delta)
     t = sec_since_boot()
     if mpc_nans:
-      self.libmpc.init(MPC_COST_LAT.PATH, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, CP.steerRateCost)
-      self.cur_state[0].delta = math.radians(angle_steers - angle_offset) / VM.sR
+      self.libmpc.init(MPC_COST_LAT.PATH, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.steerRateCost)
+      self.cur_state[0].delta = math.radians(angle_steers - angle_offset) / self.steerRatio
 
       if t > self.last_cloudlog_t + 5.0:
         self.last_cloudlog_t = t
