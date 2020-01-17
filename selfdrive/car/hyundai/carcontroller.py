@@ -10,15 +10,15 @@ from opendbc.can.packer import CANPacker
 class SteerLimitParams:
   STEER_MAX = 408   # 409 is the max, 255 is stock
   STEER_DELTA_UP = 3
-  STEER_DELTA_DOWN = 6
+  STEER_DELTA_DOWN = 7
   STEER_DRIVER_ALLOWANCE = 50
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
   
 class LowSpeedSteerLimitParams(SteerLimitParams):
-  STEER_MAX = 300
+  STEER_MAX = 350
   STEER_DELTA_UP = 2
-  STEER_DELTA_DOWN = 3
+  STEER_DELTA_DOWN = 6
   STEER_DRIVER_ALLOWANCE = 50
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
@@ -148,12 +148,12 @@ class CarController():
         self.resume_cnt = 0
       # when lead car starts moving, create 6 RES msgs
       elif CS.lead_distance > self.last_lead_distance and (frame - self.last_resume_frame) > 5:
-        can_sends.append(create_clu11(self.packer, CS.scc_bus, CS.clu11, Buttons.RES_ACCEL, clu11_speed, clu11_cnt))
+        can_sends.append(create_clu11(self.packer, CS.scc_bus, CS.clu11, Buttons.RES_ACCEL, clu11_speed, self.resume_cnt))
         self.resume_cnt += 1
         # interval after 6 msgs
         if self.resume_cnt > 5:
           self.last_resume_frame = frame
-          self.clu11_cnt = 0
+          self.resume_cnt = 0
     # reset lead distnce after the car starts moving
     elif self.last_lead_distance != 0:
       self.last_lead_distance = 0  
