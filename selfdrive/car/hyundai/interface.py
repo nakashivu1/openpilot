@@ -320,6 +320,10 @@ class CarInterface(CarInterfaceBase):
 
     if self.lkas_button_alert:
       events.append(create_event('lkasButtonOff', [ET.WARNING]))
+    if ret.rightBlinker and ret.lcaRight and self.CS.v_ego > (40 * CV.MPH_TO_MS):
+      events.append(create_event('rightLCAbsm', [ET.WARNING]))
+    if ret.leftBlinker and ret.lcaLeft and self.CS.v_ego > (40 * CV.MPH_TO_MS):
+      events.append(create_event('leftLCAbsm', [ET.WARNING]))
 
     ret.events = events
 

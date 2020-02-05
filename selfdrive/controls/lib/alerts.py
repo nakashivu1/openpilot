@@ -275,6 +275,27 @@ ALERTS = [
       AlertStatus.normal, AlertSize.mid,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .0, .1, .1),
 
+    Alert(
+      "rightLCAbsm",
+      "Vehicle in Right Lane",
+      "Waiting for Lane to be clear",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
+
+  Alert(
+      "leftLCAbsm",
+      "Vehicle in Left Lane",
+      "Waiting for Lane to be clear",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
+
+  Alert(
+      "preventLCA",
+      "TAKE CONTROL",
+      "Lane Change Cancelled, Lane Unsafe",
+      AlertStatus.critical, AlertSize.full,
+      Priority.HIGH, VisualAlert.none, AudibleAlert.chimeWarningRepeat, .4, 3., 3.,),
+
   Alert(
       "posenetInvalid",
       "TAKE CONTROL",
