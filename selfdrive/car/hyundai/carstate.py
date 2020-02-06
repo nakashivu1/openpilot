@@ -301,8 +301,10 @@ class CarState():
     self.v_ego = 0.0
     self.left_blinker_on = 0
     self.left_blinker_flash = 0
+    self.left_blinker_cnt = 0
     self.right_blinker_on = 0
     self.right_blinker_flash = 0
+    self.right_blinker_cnt = 0
     self.lca_left = 0
     self.lca_left = 0
     self.no_radar = CP.sccBus == -1
