@@ -21,6 +21,8 @@ class CarInterface(CarInterfaceBase):
     self.brake_pressed_prev = False
     self.cruise_enabled_prev = False
     self.low_speed_alert = False
+    self.vEgo_prev = False
+    self.turning_indicator_alert = False
 
     # *** init the major players ***
     self.CS = CarState(CP)
@@ -47,10 +49,12 @@ class CarInterface(CarInterfaceBase):
     ret.safetyModel = car.CarParams.SafetyModel.hyundai
     ret.enableCruise = True  # stock acc
 
-    ret.steerActuatorDelay = 0.1  # Default delay
+    ret.steerActuatorDelay = 0.15  # Default delay
     ret.steerRateCost = 0.5
     ret.steerLimitTimer = 0.8
-    tire_stiffness_factor = 1.
+    tire_stiffness_factor = 0.7
+
+    ret.minEnableSpeed = -1.   # enable is done by stock ACC, so ignore this
 
     if candidate in [CAR.SANTA_FE, CAR.SANTA_FE_1]:
       ret.lateralTuning.pid.kf = 0.00005
@@ -71,22 +75,24 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
       ret.minSteerSpeed = 0.
     elif candidate in [CAR.ELANTRA, CAR.ELANTRA_GT_I30]:
-      ret.lateralTuning.pid.kf = 0.00006
+      ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 1275. + STD_CARGO_KG
       ret.wheelbase = 2.7
       ret.steerRatio = 13.73   #Spec
-      tire_stiffness_factor = 0.385
+      tire_stiffness_factor = 0.685
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.10], [0.02]]
       ret.minSteerSpeed = 32 * CV.MPH_TO_MS
+      ret.minEnableSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
       ret.lateralTuning.pid.kf = 0.00005
       ret.mass = 2060. + STD_CARGO_KG
       ret.wheelbase = 3.01
-      ret.steerRatio = 16.5
+      ret.steerRatio = 11.8
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.16], [0.01]]
-      ret.minSteerSpeed = 60 * CV.KPH_TO_MS
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.20], [0.06]]
+      ret.minSteerSpeed = 50 * CV.KPH_TO_MS
+      ret.minEnableSpeed = 15 * CV.KPH_TO_MS
     elif candidate in [CAR.GENESIS_G90, CAR.GENESIS_G80]:
       ret.mass = 2200
       ret.wheelbase = 3.15
@@ -143,8 +149,6 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
 
-    ret.minEnableSpeed = -1.   # enable is done by stock ACC, so ignore this
-
     ret.longitudinalTuning.kpBP = [0., 5., 35.]
     ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
     ret.longitudinalTuning.kiBP = [0., 35.]
@@ -177,7 +181,7 @@ class CarInterface(CarInterfaceBase):
     ret.brakeMaxV = [1., 0.8]
 
     ret.enableCamera = is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, Ecu.fwdCamera) or has_relay
-    ret.openpilotLongitudinalControl = True
+    ret.openpilotLongitudinalControl = False
 
     ret.stoppingControl = True
     ret.startAccel = 0.0
@@ -244,65 +248,60 @@ class CarInterface(CarInterfaceBase):
     ret.cruiseState.available = bool(self.CS.main_on)
     ret.cruiseState.standstill = False
 
-    # Optima only has blinker flash signal
-    if self.CP.carFingerprint in [CAR.KIA_OPTIMA, CAR.KIA_OPTIMA_H]:
-      self.CS.left_blinker_on = self.CS.left_blinker_flash or self.CS.prev_left_blinker_on and self.CC.turning_signal_timer
-      self.CS.right_blinker_on = self.CS.right_blinker_flash or self.CS.prev_right_blinker_on and self.CC.turning_signal_timer
-
     ret.lcaLeft = self.CS.lca_left != 0
     ret.lcaRight = self.CS.lca_right != 0
 
     # TODO: button presses
     buttonEvents = []
 
-    if self.CS.left_blinker_on != self.CS.prev_left_blinker_on:
+    if self.CS.left_blinker_flash != self.CS.prev_left_blinker_flash:
       be = car.CarState.ButtonEvent.new_message()
       be.type = ButtonType.leftBlinker
-      be.pressed = self.CS.left_blinker_on != 0
+      be.pressed = self.CS.left_blinker_flash != 0
       buttonEvents.append(be)
 
-    if self.CS.right_blinker_on != self.CS.prev_right_blinker_on:
+    if self.CS.right_blinker_flash != self.CS.prev_right_blinker_flash:
       be = car.CarState.ButtonEvent.new_message()
       be.type = ButtonType.rightBlinker
-      be.pressed = self.CS.right_blinker_on != 0
+      be.pressed = self.CS.right_blinker_flash != 0
       buttonEvents.append(be)
 
     ret.buttonEvents = buttonEvents
-    ret.leftBlinker = bool(self.CS.left_blinker_on)
-    ret.rightBlinker = bool(self.CS.right_blinker_on)
+    ret.leftBlinker = bool(self.CS.left_blinker_flash)
+    ret.rightBlinker = bool(self.CS.right_blinker_flash)
 
     ret.doorOpen = not self.CS.door_all_closed
     ret.seatbeltUnlatched = not self.CS.seatbelt
 
     # low speed steer alert hysteresis logic (only for cars with steer cut off above 10 m/s)
-    if ret.vEgo < (self.CP.minSteerSpeed + 0.2) and self.CP.minSteerSpeed > 10.:
+    if ret.vEgo < self.CP.minSteerSpeed and self.CP.minSteerSpeed > 10.:
       self.low_speed_alert = True
-    if ret.vEgo > (self.CP.minSteerSpeed + 0.7):
+    if ret.vEgo > self.CP.minSteerSpeed:
       self.low_speed_alert = False
 
-    # turning indicator alert logic
-    self.turning_indicator_alert = True if self.CC.turning_signal_timer and self.CS.v_ego < 16.7 else False
+    # turning indicator alert hysteresis logic
+    self.turning_indicator_alert = True if (self.CS.left_blinker_flash or self.CS.right_blinker_flash) and self.CS.v_ego < 17.5 else False
 
     # LKAS button alert logic
     self.lkas_button_alert = True if not self.CC.lkas_button else False
 
     events = []
-    if not ret.gearShifter == GearShifter.drive:
-      events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.USER_DISABLE]))
-    if ret.doorOpen:
-      events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
-    if ret.seatbeltUnlatched:
-      events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+#    if not ret.gearShifter == GearShifter.drive:
+#      events.append(create_event('wrongGear', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+#    if ret.doorOpen:
+#      events.append(create_event('doorOpen', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
+#    if ret.seatbeltUnlatched:
+#      events.append(create_event('seatbeltNotLatched', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if self.CS.esp_disabled:
       events.append(create_event('espDisabled', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
     if not self.CS.main_on:
       events.append(create_event('wrongCarMode', [ET.NO_ENTRY, ET.USER_DISABLE]))
     if ret.gearShifter == GearShifter.reverse:
-      events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.USER_DISABLE]))
-    if self.CS.steer_error or abs(self.CS.angle_steers) > 90.:
+      events.append(create_event('reverseGear', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+    if self.CS.steer_error:
       events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
 
-    if ret.cruiseState.enabled and not self.cruise_enabled_prev:
+    if ret.cruiseState.enabled and (not self.cruise_enabled_prev or ret.vEgo > self.CP.minEnableSpeed >= self.vEgo_prev):
       events.append(create_event('pcmEnable', [ET.ENABLE]))
     elif not ret.cruiseState.enabled:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
@@ -317,14 +316,15 @@ class CarInterface(CarInterfaceBase):
 
     if self.low_speed_alert and not self.CS.mdps_bus :
       events.append(create_event('belowSteerSpeed', [ET.WARNING]))
+
     if self.turning_indicator_alert:
       events.append(create_event('turningIndicatorOn', [ET.WARNING]))
+
     if self.lkas_button_alert:
       events.append(create_event('lkasButtonOff', [ET.WARNING]))
-    #TODO Varible for min Speed for LCA
-    if ret.rightBlinker and ret.lcaRight and self.CS.v_ego > (45 * CV.MPH_TO_MS):
+    if ret.rightBlinker and ret.lcaRight and self.CS.v_ego > (40 * CV.MPH_TO_MS):
       events.append(create_event('rightLCAbsm', [ET.WARNING]))
-    if ret.leftBlinker and ret.lcaLeft and self.CS.v_ego > (45 * CV.MPH_TO_MS):
+    if ret.leftBlinker and ret.lcaLeft and self.CS.v_ego > (40 * CV.MPH_TO_MS):
       events.append(create_event('leftLCAbsm', [ET.WARNING]))
 
     ret.events = events
@@ -332,12 +332,15 @@ class CarInterface(CarInterfaceBase):
     self.gas_pressed_prev = ret.gasPressed
     self.brake_pressed_prev = ret.brakePressed
     self.cruise_enabled_prev = ret.cruiseState.enabled
+    self.vEgo_prev = ret.vEgo
 
     return ret.as_reader()
 
   def apply(self, c):
+
     can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators,
                                c.cruiseControl.cancel, c.hudControl.visualAlert, c.hudControl.leftLaneVisible,
                                c.hudControl.rightLaneVisible, c.hudControl.leftLaneDepart, c.hudControl.rightLaneDepart)
+
     self.frame += 1
     return can_sends
