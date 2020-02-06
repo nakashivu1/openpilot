@@ -22,7 +22,6 @@ class CarInterface(CarInterfaceBase):
     self.cruise_enabled_prev = False
     self.low_speed_alert = False
     self.vEgo_prev = False
-    self.turning_indicator_alert = False
 
     # *** init the major players ***
     self.CS = CarState(CP)
