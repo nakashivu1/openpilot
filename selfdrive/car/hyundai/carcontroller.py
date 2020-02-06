@@ -31,6 +31,14 @@ class HighAngleSteerLimitParams(SteerLimitParams):
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
 
+class HighSpeedSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 408
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 6
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
@@ -89,6 +97,8 @@ class CarController():
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
     elif CS.v_ego < 10 and abs(CS.angle_steers) > 83.:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighAngleSteerLimitParams)
+    elif CS.v_ego > 30:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighSpeedSteerLimitParams)
     else:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
     self.steer_rate_limited = new_steer != apply_steer
