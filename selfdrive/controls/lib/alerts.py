@@ -63,7 +63,7 @@ ALERTS = [
       "Steer Unavailable while Turning",
       "",
       AlertStatus.userPrompt, AlertSize.small,
-      Priority.HIGH, VisualAlert.none, AudibleAlert.none, 0., 0., .1),
+      Priority.MID, VisualAlert.none, AudibleAlert.none, 0., 0., 1.),
   Alert(
       "lkasButtonOff",
       "LKAS button off",
@@ -140,7 +140,7 @@ ALERTS = [
       "KEEP EYES ON ROAD: Driver Appears Distracted",
       "",
       AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.none, .0, .1, .1, alert_rate=0.75),
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .0, .1, .1, alert_rate=0.75),
 
   Alert(
       "promptDriverDistracted",
@@ -286,21 +286,21 @@ ALERTS = [
       "Vehicle in Right Lane",
       "Waiting for Lane to be clear",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
+      Priority.MID, VisualAlert.none, AudibleAlert.none, 0., 0.4, .3),
 
   Alert(
       "leftLCAbsm",
       "Vehicle in Left Lane",
       "Waiting for Lane to be clear",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
+      Priority.MID, VisualAlert.none, AudibleAlert.none, 0., 0.4, .3),
 
   Alert(
       "preventLCA",
       "TAKE CONTROL",
       "Lane Change Cancelled, Lane Unsafe",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGH, VisualAlert.none, AudibleAlert.chimeWarningRepeat, .4, 3., 3.,),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .4, 3., 3.,),
 
 
   Alert(
@@ -536,7 +536,7 @@ ALERTS = [
       "TAKE CONTROL IMMEDIATELY",
       "Reverse Gear",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, 2.2, 3., 4.),
+      Priority.HIGHEST, VisualAlert.none, AudibleAlert.none, 2.2, 3., 4.),
 
   Alert(
       "cruiseDisabled",
