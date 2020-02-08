@@ -177,6 +177,7 @@ def thermald_thread():
 
   off_ts = None
   started_ts = None
+  ignition_seen = False
   started_seen = False
   thermal_status = ThermalStatus.green
   thermal_status_prev = ThermalStatus.green
@@ -211,6 +212,7 @@ def thermald_thread():
     # clear car params when panda gets disconnected
     if health is None and health_prev is not None:
       params.panda_disconnect()
+      ignition_seen = False
     health_prev = health
 
     if health is not None:
@@ -290,32 +292,37 @@ def thermald_thread():
     time_valid_prev = time_valid
 
     # Show update prompt
-    try:
-      last_update = datetime.datetime.fromisoformat(params.get("LastUpdateTime", encoding='utf8'))
-    except (TypeError, ValueError):
-      last_update = now
-    dt = now - last_update
+#    try:
+#      last_update = datetime.datetime.fromisoformat(params.get("LastUpdateTime", encoding='utf8'))
+#    except (TypeError, ValueError):
+#      last_update = now
+#    dt = now - last_update
 
-    if dt.days > DAYS_NO_CONNECTIVITY_MAX:
-      if current_connectivity_alert != "expired":
-        current_connectivity_alert = "expired"
-        params.delete("Offroad_ConnectivityNeededPrompt")
-        params.put("Offroad_ConnectivityNeeded", json.dumps(OFFROAD_ALERTS["Offroad_ConnectivityNeeded"]))
-    elif dt.days > DAYS_NO_CONNECTIVITY_PROMPT:
-      remaining_time = str(DAYS_NO_CONNECTIVITY_MAX - dt.days)
-      if current_connectivity_alert != "prompt" + remaining_time:
-        current_connectivity_alert = "prompt" + remaining_time
-        alert_connectivity_prompt = copy.copy(OFFROAD_ALERTS["Offroad_ConnectivityNeededPrompt"])
-        alert_connectivity_prompt["text"] += remaining_time + " days."
-        params.delete("Offroad_ConnectivityNeeded")
-        params.put("Offroad_ConnectivityNeededPrompt", json.dumps(alert_connectivity_prompt))
-    elif current_connectivity_alert is not None:
-      current_connectivity_alert = None
-      params.delete("Offroad_ConnectivityNeeded")
-      params.delete("Offroad_ConnectivityNeededPrompt")
+#    if dt.days > DAYS_NO_CONNECTIVITY_MAX:
+#      if current_connectivity_alert != "expired":
+#        current_connectivity_alert = "expired"
+#        params.delete("Offroad_ConnectivityNeededPrompt")
+#        params.put("Offroad_ConnectivityNeeded", json.dumps(OFFROAD_ALERTS["Offroad_ConnectivityNeeded"]))
+#    elif dt.days > DAYS_NO_CONNECTIVITY_PROMPT:
+#      remaining_time = str(DAYS_NO_CONNECTIVITY_MAX - dt.days)
+#      if current_connectivity_alert != "prompt" + remaining_time:
+#        current_connectivity_alert = "prompt" + remaining_time
+#        alert_connectivity_prompt = copy.copy(OFFROAD_ALERTS["Offroad_ConnectivityNeededPrompt"])
+#        alert_connectivity_prompt["text"] += remaining_time + " days."
+#        params.delete("Offroad_ConnectivityNeeded")
+#        params.put("Offroad_ConnectivityNeededPrompt", json.dumps(alert_connectivity_prompt))
+#    elif current_connectivity_alert is not None:
+#      current_connectivity_alert = None
+#      params.delete("Offroad_ConnectivityNeeded")
+#      params.delete("Offroad_ConnectivityNeededPrompt")
 
     # start constellation of processes when the car starts
-    ignition = health is not None and (health.health.ignitionLine or health.health.ignitionCan)
+    ignition = health is not None and health.health.started
+    ignition_seen = ignition_seen or ignition
+
+    # add voltage check for ignition
+    if not ignition_seen and health is not None and health.health.voltage > 13500:
+      ignition = True
 
     do_uninstall = params.get("DoUninstall") == b"1"
     accepted_terms = params.get("HasAcceptedTerms") == terms_version
