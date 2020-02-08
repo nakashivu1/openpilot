@@ -10,7 +10,7 @@ VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 class SteerLimitParams:
   STEER_MAX = 408   # 409 is the max, 255 is stock
-  STEER_DELTA_UP = 4
+  STEER_DELTA_UP = 3
   STEER_DELTA_DOWN = 7
   STEER_DRIVER_ALLOWANCE = 50
   STEER_DRIVER_MULTIPLIER = 2
