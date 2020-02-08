@@ -14,7 +14,7 @@ def process_hud_alert(enabled, fingerprint, visual_alert, left_line,
 
   hud_alert = 0
   if visual_alert == VisualAlert.steerRequired:
-    hud_alert = 3 if fingerprint in [CAR.GENESIS , CAR.GENESIS_G90, CAR.GENESIS_G80] else 5
+    hud_alert = 4 if fingerprint in [CAR.GENESIS , CAR.GENESIS_G90, CAR.GENESIS_G80] else 5
 
   # initialize to no line visible
   lane_visible = 1
@@ -56,8 +56,8 @@ class CarController():
   def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, visual_alert,
               left_line, right_line, left_lane_depart, right_lane_depart):
 
-    if CS.left_blinker_flash or CS.right_blinker_flash:
-      self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
+    if CS.left_blinker_flash or CS.right_blinker_flash or CS.v_ego < 13.6:
+      self.turning_signal_timer = 100  # Disable for 1 Seconds 
     if self.turning_signal_timer:
       enabled = 0
 

@@ -63,7 +63,7 @@ ALERTS = [
       "Steer Unavailable while Turning",
       "TAKE CONTROL",
       AlertStatus.userPrompt, AlertSize.small,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, 0., 0., 1.),
+      Priority.LOW, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, 0., 0., 1.),
 
   # Miscellaneous alerts
   Alert(
@@ -127,7 +127,7 @@ ALERTS = [
       "DISENGAGE IMMEDIATELY",
       "User Was Distracted",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, .1, .1),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, 3., .1),
 
   Alert(
       "preDriverUnresponsive",
@@ -148,7 +148,7 @@ ALERTS = [
       "DISENGAGE IMMEDIATELY",
       "User Was Unresponsive",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, .1, .1),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, .1, 3., .1),
 
   Alert(
       "driverMonitorOff",
@@ -225,7 +225,7 @@ ALERTS = [
       "Steer Unavailable Below 31 MPH",
       "Steer Unavailable Below ",
       AlertStatus.userPrompt, AlertSize.small,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning1, 0., 0., .1),
 
   Alert(
       "debugAlert",
@@ -452,7 +452,7 @@ ALERTS = [
       "TAKE CONTROL IMMEDIATELY",
       "Reverse Gear",
       AlertStatus.critical, AlertSize.full,
-      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeWarningRepeat, 2.2, 0., 4.),
+      Priority.HIGHEST, VisualAlert.steerRequired, AudibleAlert.chimeDisengage, 2.2, 0., 4.),
 
   Alert(
       "cruiseDisabled",
