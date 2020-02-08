@@ -139,7 +139,11 @@ typedef struct UIScene {
   float angleSteersDes;
   float pa0;
   float freeSpace;
-
+  
+  //clarity-bru
+  int odometer;
+  int engineRPM;
+  float tripDistance;
 } UIScene;
 
 typedef struct {
