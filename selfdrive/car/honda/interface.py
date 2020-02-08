@@ -480,6 +480,9 @@ class CarInterface(CarInterfaceBase):
     
     ret.readdistancelines = self.CS.read_distance_lines
     ret.lkMode = self.CS.lkMode
+    ret.engineRPM = self.CS.engineRPM
+    ret.odometer = self.CS.odometer
+    ret.tripDistance = self.CS.tripDistance
 
     # TODO: button presses
     buttonEvents = []
