@@ -1,3 +1,16 @@
+This is based on Kegman's 0.7.2-Clarity branch.  His readme is below mine.
+
+
+kegman-0.7.2-Clarity
+1) Removed the green border
+2) Green and orange message are now transparent.
+3) Engine RPM indicator added without overlap.  The counter for engine on switches is not implemented yet.
+4) The engage and disengage sounds are normalized -30 decibels.
+
+
+=========================================================
+
+
 If you wish you can buy me a beer or 3:  https://www.patreon.com/kegman
 
 ** If you get a red screen with "Communications Mismatch" please manually reflash panda.  Instructions are here:  https://community.comma.ai/wiki/index.php/Panda_Flashing **
