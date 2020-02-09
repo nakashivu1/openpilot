@@ -9,26 +9,26 @@ from opendbc.can.packer import CANPacker
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 class SteerLimitParams:
-  STEER_MAX = 408   # 409 is the max, 255 is stock
-  STEER_DELTA_UP = 3
-  STEER_DELTA_DOWN = 7
-  STEER_DRIVER_ALLOWANCE = 50
+  STEER_MAX = 280   # 409 is the max, 255 is stock, 280 is max for elantra
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 5
+  STEER_DRIVER_ALLOWANCE = 30
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
 
 class LowSpeedSteerLimitParams(SteerLimitParams):
-  STEER_MAX = 350
+  STEER_MAX = 280
   STEER_DELTA_UP = 2
-  STEER_DELTA_DOWN = 6
-  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DELTA_DOWN = 5
+  STEER_DRIVER_ALLOWANCE = 30
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
 
 class HighAngleSteerLimitParams(SteerLimitParams):
-  STEER_MAX = 150
-  STEER_DELTA_UP = 1
-  STEER_DELTA_DOWN = 6
-  STEER_DRIVER_ALLOWANCE = 50
+  STEER_MAX = 280
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 5
+  STEER_DRIVER_ALLOWANCE = 30
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
 
@@ -126,7 +126,7 @@ class CarController():
       self.lkas_button_last = CS.lkas_button_on
 
     # disable if steer angle reach 90 deg, otherwise mdps fault in some models
-    lkas_active = enabled and abs(CS.angle_steers) < 90. and self.lkas_button
+    lkas_active = enabled
 
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
     if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
