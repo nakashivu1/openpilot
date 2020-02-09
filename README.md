@@ -1,7 +1,7 @@
 This is based on Kegman's 0.7.2-Clarity branch.  His readme is below mine.
 
 
-kegman-0.7.2-Clarity
+kegman-0.7.2-Clarity-v1
 1) Removed the green border.
 2) Green and orange messages are now transparent.
 3) Engine RPM indicator added without overlap.  The counter for engine activation is not implemented yet.
