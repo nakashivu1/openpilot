@@ -34,7 +34,7 @@ class HighAngleSteerLimitParams(SteerLimitParams):
 class HighSpeedSteerLimitParams(SteerLimitParams):
   STEER_MAX = 408
   STEER_DELTA_UP = 2
-  STEER_DELTA_DOWN = 6
+  STEER_DELTA_DOWN = 7
   STEER_DRIVER_ALLOWANCE = 50
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
