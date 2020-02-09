@@ -146,7 +146,7 @@ typedef struct UIScene {
   float tripDistance;
 } UIScene;
 
-int engineOnCount = 0;
+//int engineOnCount = 0;
 
 typedef struct {
   float x, y;
