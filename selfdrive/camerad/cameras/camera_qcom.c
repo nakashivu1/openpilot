@@ -1718,12 +1718,12 @@ static void parse_autofocus(CameraState *s, uint8_t *d) {
 
   for (int i = 0; i < NUM_FOCUS; i++) {
     int doff = i*5+5;
-     s->confidence[i] = d[doff];
-     int16_t focus_t = (d[doff+1] << 3) | (d[doff+2] >> 5);
-     if (focus_t >= 1024) focus_t = -(2048-focus_t);
-     s->focus[i] = focus_t;
-     //printf("%x->%d ", d[doff], focus_t);
-     if (s->confidence[i] > 0x20) {
+    s->confidence[i] = d[doff];
+    int16_t focus_t = (d[doff+1] << 3) | (d[doff+2] >> 5);
+    if (focus_t >= 1024) focus_t = -(2048-focus_t);
+    s->focus[i] = focus_t;
+    //printf("%x->%d ", d[doff], focus_t);
+    if (s->confidence[i] > 0x20) {
       good_count++;
       max_focus = max(max_focus, s->focus[i]);
       avg_focus += s->focus[i];
@@ -1739,10 +1739,11 @@ static void parse_autofocus(CameraState *s, uint8_t *d) {
   avg_focus /= good_count;
 
   // outlier rejection
-   if (abs(avg_focus - max_focus) > 200) {
+  if (abs(avg_focus - max_focus) > 200) {
     s->focus_err = nan("");
     return;
   }
+
   s->focus_err = max_focus*1.0;
 }
 
