@@ -106,6 +106,9 @@ typedef struct UIScene {
   bool map_valid;
   bool brakeLights;
 
+  bool leftBlinker;
+  bool rightBlinker;
+  int blinker_blinkingrate;
 
   float curvature;
   int engaged;
