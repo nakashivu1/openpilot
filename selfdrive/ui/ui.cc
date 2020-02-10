@@ -114,6 +114,7 @@ static void ui_init(UIState *s) {
   s->radarstate_sock = SubSocket::create(s->ctx, "radarState");
   //s->thermal_sock = SubSocket::create(s->ctx, "thermal");
   s->carstate_sock = SubSocket::create(s->ctx, "carState");
+  s->livempc_sock = SubSocket::create(s->ctx, "liveMpc");
 
   assert(s->model_sock != NULL);
   assert(s->controlsstate_sock != NULL);
@@ -122,6 +123,7 @@ static void ui_init(UIState *s) {
   assert(s->radarstate_sock != NULL);
   //assert(s->thermal_sock != NULL);
   assert(s->carstate_sock != NULL);
+  assert(s->livempc_sock != NULL);
 
   s->poller = Poller::create({
                               s->model_sock,
@@ -129,7 +131,8 @@ static void ui_init(UIState *s) {
                               s->uilayout_sock,
                               s->livecalibration_sock,
                               s->radarstate_sock,
-	                            s->carstate_sock
+                              s->carstate_sock,
+                              s->livempc_sock
                              });
 
   /*
@@ -285,6 +288,9 @@ void handle_message(UIState *s, Message * msg) {
     struct cereal_ControlsState datad;
     cereal_read_ControlsState(&datad, eventd.controlsState);
 
+    struct cereal_ControlsState_LateralPIDState pdata;
+    cereal_read_ControlsState_LateralPIDState(&pdata, datad.lateralControlState.pidState);
+
     s->controls_timeout = 1 * UI_FREQ;
     s->controls_seen = true;
 
@@ -299,6 +305,8 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.engageable = datad.engageable;
     s->scene.gps_planner_active = datad.gpsPlannerActive;
     s->scene.monitoring_active = datad.driverMonitoringOn;
+    s->scene.steerOverride = datad.steerOverride;
+    s->scene.output_scale = pdata.output;
 
     s->scene.frontview = datad.rearViewCam;
 

@@ -135,6 +135,10 @@ typedef struct UIScene {
 
   float awareness_status;
 
+  // pathcoloring
+  float output_scale;
+  bool steerOverride;
+
   // Used to show gps planner status
   bool gps_planner_active;
 
@@ -190,7 +194,8 @@ typedef struct UIState {
   SubSocket *radarstate_sock;
   SubSocket *map_data_sock;
   SubSocket *uilayout_sock;
-  SubSocket *carstate_sock;  
+  SubSocket *carstate_sock;
+  SubSocket *livempc_sock;
   Poller * poller;
 
   int active_app;
