@@ -316,8 +316,8 @@ class CarInterface(CarInterfaceBase):
     if self.low_speed_alert and not self.CS.mdps_bus :
       events.append(create_event('belowSteerSpeed', [ET.WARNING]))
 
-    if self.turning_indicator_alert:
-      events.append(create_event('turningIndicatorOn', [ET.WARNING]))
+#    if self.turning_indicator_alert:
+#      events.append(create_event('turningIndicatorOn', [ET.WARNING]))
 
     if self.lkas_button_alert:
       events.append(create_event('lkasButtonOff', [ET.WARNING]))
