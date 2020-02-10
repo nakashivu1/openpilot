@@ -114,7 +114,7 @@ class CarController():
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
     if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
       self.turning_signal_timer = 100
-    if ((CS.left_blinker_flash or CS.right_blinker_flash) and CS.v_ego < 17.5): # Disable steering when blinker on and belwo ALC speed
+    if ((CS.left_blinker_flash or CS.right_blinker_flash) and (CS.steer_override or abs(CS.angle_steers) > 15.) and CS.v_ego < 17.5):
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
     if self.turning_signal_timer:
       lkas_active = 0
