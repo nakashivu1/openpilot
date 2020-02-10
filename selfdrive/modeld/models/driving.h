@@ -72,7 +72,7 @@ ModelDataRaw model_eval_frame(ModelState* s, cl_command_queue q,
                            cl_mem yuv_cl, int width, int height,
                            mat3 transform, void* sock, float *desire_in);
 void model_free(ModelState* s);
-void poly_fit(float *in_pts, float *in_stds, float *out);
+void poly_fit(float *in_pts, float *in_stds, float *out, int dx0, int dx1);
 
 void model_publish(PubSocket* sock, uint32_t frame_id,
                    const ModelDataRaw data, uint64_t timestamp_eof);

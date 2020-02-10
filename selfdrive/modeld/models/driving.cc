@@ -100,13 +100,13 @@ void model_free(ModelState* s) {
   delete s->m;
 }
 
-void poly_fit(float *in_pts, float *in_stds, float *out) {
+void poly_fit(float *in_pts, float *in_stds, float *out, int dx0, int dx1) {
   // References to inputs
   Eigen::Map<Eigen::Matrix<float, MODEL_PATH_DISTANCE, 1> > pts(in_pts, MODEL_PATH_DISTANCE);
   Eigen::Map<Eigen::Matrix<float, MODEL_PATH_DISTANCE, 1> > std(in_stds, MODEL_PATH_DISTANCE);
   Eigen::Map<Eigen::Matrix<float, POLYFIT_DEGREE - 1, 1> > p(out, POLYFIT_DEGREE - 1);
 
-  float y0 = pts[0];
+  float y0 = pts[dx0];
   pts = pts.array() - y0;
 
   // Build Least Squares equations
@@ -124,6 +124,11 @@ void poly_fit(float *in_pts, float *in_stds, float *out) {
   // Apply scale to output
   p = p.transpose() * scale.asDiagonal();
   out[3] = y0;
+
+  //if dx1 is not zero then change slope slightly to force through the second point as well
+  if (dx1 > 0) {
+    out[2] = (pts[dx1] - out[0] * pow(dx1,3) - out[1] * pow(dx1,2) - out[3] ) / dx1;
+  }
 }
 
 
