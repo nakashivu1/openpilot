@@ -135,6 +135,8 @@ typedef struct UIScene {
 
   float awareness_status;
 
+  bool recording;
+
   // pathcoloring
   float output_scale;
   bool steerOverride;
