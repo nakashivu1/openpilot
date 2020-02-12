@@ -9,7 +9,7 @@ from opendbc.can.packer import CANPacker
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 class SteerLimitParams:
-  STEER_MAX = 280   # 409 is the max, 255 is stock
+  STEER_MAX = 408   # 409 is the max, 255 is stock
   STEER_DELTA_UP = 3
   STEER_DELTA_DOWN = 7
   STEER_DRIVER_ALLOWANCE = 50
@@ -42,10 +42,8 @@ def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
   # initialize to no line visible
   
   lane_visible = 1
-  if not button_on:
-    lane_visible = 0
-  elif left_line and right_line or hud_alert: #HUD alert only display when LKAS status is active
-    if enabled or hud_alert:
+  if left_line and right_line:
+    if enabled:
       lane_visible = 3
     else:
       lane_visible = 4
@@ -109,6 +107,7 @@ class CarController():
     else:
       lkas_active = enabled and self.lkas_button
 
+    lane_visible = 1
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
     if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
       self.turning_signal_timer = 100
@@ -116,6 +115,7 @@ class CarController():
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
     if self.turning_signal_timer:
       lkas_active = 0
+      lane_visible = 0
       self.turning_signal_timer -= 1
     if not lkas_active:
       apply_steer = 0
