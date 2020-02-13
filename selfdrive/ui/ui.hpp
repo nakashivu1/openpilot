@@ -148,6 +148,8 @@ typedef struct UIScene {
   float angleSteersDes;
   float pa0;
   float freeSpace;
+  uint16_t maxCpuTemp;
+  uint32_t maxBatTemp;
 
 } UIScene;
 
