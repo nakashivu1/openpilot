@@ -467,6 +467,27 @@ void handle_message(UIState *s, Message * msg) {
       s->scene.mpc_y[i] = capn_to_f32(capn_get32(y_list, i));
     }
     s->livempc_or_radarstate_changed = true;
+  // getting thermal related data for dev ui
+  } else if (eventd.which == cereal_Event_thermal) {
+    struct cereal_ThermalData datad;
+    cereal_read_ThermalData(&datad, eventd.thermal);
+    //BBB CPU TEMP
+    s->scene.maxCpuTemp = datad.cpu0;
+    if (s->scene.maxCpuTemp < datad.cpu1)
+    {
+      s->scene.maxCpuTemp = datad.cpu1;
+    }
+    else if (s->scene.maxCpuTemp < datad.cpu2)
+    {
+      s->scene.maxCpuTemp = datad.cpu2;
+    }
+    else if (s->scene.maxCpuTemp < datad.cpu3)
+    {
+      s->scene.maxCpuTemp = datad.cpu3;
+    }
+    s->scene.maxBatTemp = datad.bat;
+    s->scene.freeSpace = datad.freeSpace;
+    //BBB END CPU TEMP
   } else if (eventd.which == cereal_Event_uiLayoutState) {
     struct cereal_UiLayoutState datad;
     cereal_read_UiLayoutState(&datad, eventd.uiLayoutState);
@@ -493,13 +514,6 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.speedlimitahead_valid = datad.speedLimitAheadValid;
     s->scene.speedlimitaheaddistance = datad.speedLimitAheadDistance;
     s->scene.speedlimit_valid = datad.speedLimitValid;
-  // getting thermal related data for dev ui
-  } else if (eventd.which == cereal_Event_thermal) {
-    struct cereal_ThermalData datad;
-    cereal_read_ThermalData(&datad, eventd.thermal);
-
-    s->scene.pa0 = datad.pa0;
-    s->scene.freeSpace = datad.freeSpace;
   } else if (eventd.which == cereal_Event_carState) {
     struct cereal_CarState datad;
     cereal_read_CarState(&datad, eventd.carState);
