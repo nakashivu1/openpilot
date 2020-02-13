@@ -801,7 +801,9 @@ static void ui_draw_vision_maxspeed(UIState *s) {
     nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 100));
     nvgText(s->vg, viz_maxspeed_x+(viz_maxspeed_xo/2)+(viz_maxspeed_w/2), 242, "-", NULL);
   }
-
+  //BB START: add new measures panel  const int bb_dml_w = 180;
+  bb_ui_draw_UI(s);
+  //BB END: add new measures panel
 }
 
 static void ui_draw_vision_speedlimit(UIState *s) {
@@ -1150,7 +1152,6 @@ static void ui_draw_vision_footer(UIState *s) {
 #ifdef SHOW_SPEEDLIMIT
   ui_draw_vision_map(s);
 #endif
-  bb_ui_draw_UI(s);
 }
 
 void ui_draw_vision_alert(UIState *s, int va_size, int va_color,
