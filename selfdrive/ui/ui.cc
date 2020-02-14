@@ -20,8 +20,6 @@
 #include "ui.hpp"
 #include "sound.hpp"
 
-#include "devicestate.c"
-
 static int last_brightness = -1;
 static void set_brightness(UIState *s, int brightness) {
   if (last_brightness != brightness && (s->awake || brightness == 0)) {
@@ -916,13 +914,13 @@ int main(int argc, char* argv[]) {
   UIState uistate;
   UIState *s = &uistate;
   ui_init(s);
-  ds_init();
 
   pthread_t connect_thread_handle;
   err = pthread_create(&connect_thread_handle, NULL,
                        vision_connect_thread, s);
   assert(err == 0);
 
+#ifdef QCOM
   pthread_t light_sensor_thread_handle;
   err = pthread_create(&light_sensor_thread_handle, NULL,
                        light_sensor_thread, s);
@@ -932,6 +930,7 @@ int main(int argc, char* argv[]) {
   err = pthread_create(&bg_thread_handle, NULL,
                        bg_thread, s);
   assert(err == 0);
+#endif
 
   TouchState touch = {0};
   touch_init(&touch);
