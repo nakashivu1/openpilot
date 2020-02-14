@@ -15,6 +15,38 @@ class SteerLimitParams:
   STEER_DRIVER_ALLOWANCE = 50
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
+  
+class LowSpeedSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 350
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 6
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+
+class HighSpeedSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 408
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 7
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+  
+class MidSpeedSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 408
+  STEER_DELTA_UP = 4
+  STEER_DELTA_DOWN = 8
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+
+class HighAngleSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 150
+  STEER_DELTA_UP = 1
+  STEER_DELTA_DOWN = 6
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
 
 # Accel limits
 ACCEL_HYST_GAP = 0.02  # don't change accel command for small oscilalitons within this value
@@ -92,7 +124,16 @@ class CarController():
 
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
-    apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
+    if CS.v_ego < 10 and not abs(CS.angle_steers) > 83.:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
+    elif CS.v_ego < 10 and abs(CS.angle_steers) > 83.:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighAngleSteerLimitParams)
+    elif CS.v_ego > 10 and CS.v_ego <20:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, MidSpeedSteerLimitParams)
+    elif CS.v_ego > 30:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighSpeedSteerLimitParams)
+    else:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
     self.steer_rate_limited = new_steer != apply_steer
 
     ### LKAS button to temporarily disable steering
@@ -107,7 +148,6 @@ class CarController():
     else:
       lkas_active = enabled and self.lkas_button
 
-    lane_visible = 1
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
     if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
       self.turning_signal_timer = 100
@@ -115,7 +155,6 @@ class CarController():
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
     if self.turning_signal_timer:
       lkas_active = 0
-      lane_visible = 0
       self.turning_signal_timer -= 1
     if not lkas_active:
       apply_steer = 0
