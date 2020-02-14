@@ -922,7 +922,6 @@ int main(int argc, char* argv[]) {
                        vision_connect_thread, s);
   assert(err == 0);
 
-#ifdef QCOM
   pthread_t light_sensor_thread_handle;
   err = pthread_create(&light_sensor_thread_handle, NULL,
                        light_sensor_thread, s);
@@ -932,7 +931,6 @@ int main(int argc, char* argv[]) {
   err = pthread_create(&bg_thread_handle, NULL,
                        bg_thread, s);
   assert(err == 0);
-#endif
 
   TouchState touch = {0};
   touch_init(&touch);
