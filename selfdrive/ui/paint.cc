@@ -1262,17 +1262,6 @@ static void ui_draw_vision(UIState *s) {
 static void ui_draw_blank(UIState *s) {
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-  nvgBeginPath(s->vg);
-  nvgTextAlign(s->vg, NVG_ALIGN_CENTER| NVG_ALIGN_TOP);
-  nvgFontFace(s->vg, "sans-semibold");
-  nvgFontSize(s->vg, 15 * 2.5);
-  nvgFillColor(s->vg, nvgRGBA(255, 255, 255, 200));
-  nvgText(s->vg, 150, 292, ds.ipAddress, NULL);
-  if(ds.tx_throughput>0) {
-    char str[64];
-    sprintf(str, "%d KB/s", ds.tx_throughput);
-    nvgText(s->vg, 150, 217, str, NULL);
-  }
 }
 
 void ui_draw(UIState *s) {
