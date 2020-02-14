@@ -915,6 +915,7 @@ int main(int argc, char* argv[]) {
   UIState uistate;
   UIState *s = &uistate;
   ui_init(s);
+  ds_init();
 
   pthread_t connect_thread_handle;
   err = pthread_create(&connect_thread_handle, NULL,
