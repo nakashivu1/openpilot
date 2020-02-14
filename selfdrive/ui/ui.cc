@@ -20,6 +20,7 @@
 #include "ui.hpp"
 #include "sound.hpp"
 
+#include "devicestate.c"
 
 static int last_brightness = -1;
 static void set_brightness(UIState *s, int brightness) {
