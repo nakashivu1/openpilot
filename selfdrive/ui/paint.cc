@@ -646,6 +646,79 @@ static void ui_draw_vision_speed(UIState *s) {
   } else {
     nvgText(s->vg, viz_speed_x+viz_speed_w/2, 320, "mph", NULL);
   }
+  
+  
+  
+  //uptime
+  nvgBeginPath(s->vg);
+  nvgFontFace(s->vg, "sans-bold");
+  nvgFontSize(s->vg, 45);
+
+  time_t currentTime = time(NULL);
+  time_t upTime = currentTime - driveStartedTime;
+
+  int seconds = upTime%60;
+  int minutes = (upTime/60)%60;
+  int hours = upTime/3600;
+
+  char upTimeStr[10] = "";
+  sprintf(upTimeStr, "%02i:%02i:%02i", hours, minutes, seconds); 
+  upTimeStr[9] = '\0';
+
+  nvgText(s->vg, 145, 32, upTimeStr, NULL);
+  //Debuging.  Y-values should be 30 pixels apart
+  /*
+  char buffer[20] = "";
+  nvgTextAlign(s->vg, NVG_ALIGN_LEFT| NVG_ALIGN_BASELINE);
+
+  nvgText(s->vg, 260, 50, "tripDistance:", NULL);
+  sprintf(buffer,"%.2f", scene->tripDistance);
+  buffer[4] = '\0';
+  nvgText(s->vg, 700, 50, buffer, NULL);
+
+  nvgText(s->vg, 260, 80, "engineOnTripDistance:", NULL);
+  sprintf(buffer,"%.2f", engineOnTripDistance);
+  buffer[4] = '\0';
+  nvgText(s->vg, 700, 80, buffer, NULL);
+
+  nvgText(s->vg, 260, 110, "engineOffTripDistance:", NULL);
+  sprintf(buffer,"%.2f", engineOffTripDistance);
+  buffer[4] = '\0';
+  nvgText(s->vg, 700, 110, buffer, NULL);
+
+  nvgText(s->vg, 260, 170, "currentTripDistance:", NULL);
+  sprintf(buffer,"%.2f", currentTripDistance);
+  buffer[4] = '\0';
+  nvgText(s->vg, 700, 170, buffer, NULL);
+
+  nvgText(s->vg, 260, 200, "previousTripDistance:", NULL);
+  sprintf(buffer,"%.2f", previousTripDistance);
+  buffer[4] = '\0';
+  nvgText(s->vg, 700, 200, buffer, NULL);
+
+  nvgText(s->vg, 260, 230, "tripDistanceCycles:", NULL);
+  sprintf(buffer,"%d", tripDistanceCycles);
+  buffer[4] = '\0';
+  nvgText(s->vg, 700, 230, buffer, NULL);
+
+  nvgText(s->vg, 260, 290, "netTripDistance:", NULL);
+  sprintf(buffer,"%.2f", netTripDistance);
+  buffer[4] = '\0';
+  nvgText(s->vg, 700, 290, buffer, NULL);
+
+  nvgText(s->vg, 260, 320, "odometer:", NULL);
+  sprintf(buffer,"%i", scene->odometer);
+  buffer[7] = '\0';
+  nvgText(s->vg, 700, 320, buffer, NULL);
+
+  nvgText(s->vg, 260, 350, "odometer (.6211):", NULL);
+  sprintf(buffer,"%.2f", scene->odometer*.6211);
+  buffer[11] = '\0';
+  nvgText(s->vg, 700, 350, buffer, NULL);
+  */
+  
+  
+  
 }
 
 static void ui_draw_vision_event(UIState *s) {
@@ -783,33 +856,6 @@ static void ui_draw_vision_brake(UIState *s) {
   nvgFill(s->vg);
 }
 
-
-static void ui_vision_draw_uptime(UIState *s) {
-  const UIScene *scene = &s->scene;
-  int ui_viz_rx = scene->ui_viz_rx;
-  int ui_viz_rw = scene->ui_viz_rw;
-  
-  
-  //uptime
-  nvgBeginPath(s->vg);
-  nvgFontFace(s->vg, "sans-bold");
-  nvgFontSize(s->vg, 45);
-
-  time_t currentTime = time(NULL);
-  time_t upTime = currentTime - driveStartedTime;
-
-  int seconds = upTime%60;
-  int minutes = (upTime/60)%60;
-  int hours = upTime/3600;
-
-  char upTimeStr[10] = "";
-  sprintf(upTimeStr, "%02i:%02i:%02i", hours, minutes, seconds); 
-  upTimeStr[9] = '\0';
-
-  nvgText(s->vg, 145, 32, upTimeStr, NULL);
-
-}
-
 static void ui_draw_vision_header(UIState *s) {
   const UIScene *scene = &s->scene;
   int ui_viz_rx = scene->ui_viz_rx;
@@ -831,7 +877,6 @@ static void ui_draw_vision_header(UIState *s) {
 #endif
   ui_draw_vision_speed(s);
   ui_draw_vision_event(s);
-  ui_vision_draw_uptime(s);
 }
 
 //BB START: functions added for the display of various items
