@@ -18,10 +18,24 @@ extern "C"{
 }
 
 
-//Clarity-bru
+////Clarity-bru
+//uptime
 time_t driveStartedTime;
 bool driveStarted = 0;
 
+//TripDistance
+float engineOnTripDistance = 0;
+float engineOffTripDistance = 0;
+float currentTripDistance = 0;
+float previousTripDistance = 0;
+int tripDistanceCycles = 0;
+float netTripDistance = 0;
+
+//engine stuff
+void logEngineEvent(bool isEngineOn, int odometer, float tripDistance, int maxRPM);
+int maxRPM = 0;
+bool isEngineOn = 0;
+int engineOnCount = 0;
 
 
 // TODO: this is also hardcoded in common/transformations/camera.py
@@ -974,10 +988,6 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     bb_ry = bb_y + bb_h;
   }*/
 
-  
-
-
-
   //add free space - from bthaler1
   /*
   if (true) {
@@ -1147,16 +1157,13 @@ static void bb_ui_draw_measures_right(UIState *s, int bb_x, int bb_y, int bb_w )
     char uom_str[4];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
     snprintf(val_str, sizeof(val_str), "%d", (s->scene.engineRPM));
-    snprintf(uom_str, sizeof(uom_str), "%d", 0);
+    snprintf(uom_str, sizeof(uom_str), "%d", engineOnCount);
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "ENG RPM",
         bb_rx, bb_ry, bb_uom_dx,
         val_color, lab_color, uom_color,
         value_fontSize, label_fontSize, uom_fontSize );
     bb_ry = bb_y + bb_h;
   }
-
-
-
   //finally draw the frame
   bb_h += 20;
   nvgBeginPath(s->vg);
@@ -1179,6 +1186,38 @@ static void bb_ui_draw_UI(UIState *s)
 
   bb_ui_draw_measures_right(s, bb_dml_x, bb_dml_y, bb_dml_w);
   bb_ui_draw_measures_left(s, bb_dmr_x, bb_dmr_y, bb_dmr_w);
+  
+  
+    //Code for logging (should be moved to another file?)
+    if(scene->engineRPM > 0){
+      if(isEngineOn == 0){
+        isEngineOn = 1;
+        engineOnCount++;
+        logEngineEvent(isEngineOn, scene->odometer, scene->tripDistance, 0);
+      }
+
+       //TripDistance
+       currentTripDistance = scene->tripDistance;
+      if(currentTripDistance < previousTripDistance){
+        tripDistanceCycles++;
+      }
+      previousTripDistance = currentTripDistance;
+
+      //Stores RPM
+      if(scene->engineRPM > maxRPM){
+        maxRPM = scene->engineRPM;
+      }
+      isEngineOn = 1;
+    }
+    if(scene->engineRPM < 1){
+      if(isEngineOn == 1){
+        isEngineOn = 0;
+        logEngineEvent(isEngineOn, scene->odometer, scene->tripDistance,maxRPM);
+        previousTripDistance = 0;
+      }
+      isEngineOn = 0;
+      maxRPM = 0;
+    }
 }
 //BB END: functions added for the display of various items
 
