@@ -936,7 +936,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     char uom_str[6];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
 
-    char cpu_temp;
+    char cpu_temp[5];
     int fd;
 
     //Read the file with the CPU temp.  1 is equal to .1 degree Celius.  Not expecting anything above 9999
