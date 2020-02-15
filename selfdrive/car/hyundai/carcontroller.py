@@ -41,7 +41,7 @@ class HighSpeedSteerLimitParams(SteerLimitParams):
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
-def process_hud_alert(enabled, fingerprint, visual_alert, left_line,
+def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
                        right_line, left_lane_depart, right_lane_depart):
 
   hud_alert = 0
