@@ -868,6 +868,14 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     bb_ry = bb_y + bb_h;
   }
   */
+  
+    if(true) {
+    char val_str[16];
+    char uom_str[6];
+    char bat_lvl[4] = "";
+    NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
+    int fd;
+	
     //Read the file with the battery level.  Not expecting anything above 100%
     fd = open("/sys/class/power_supply/battery/capacity", O_RDONLY);
     if(fd == -1)
