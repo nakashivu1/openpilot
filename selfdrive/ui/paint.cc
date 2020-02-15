@@ -4,7 +4,6 @@
 #include <time.h>//clarity-bru: time
 #include <string.h>//clarity-bru: strcpy
 #include <unistd.h>//clarity-bru: files
-
 #include "ui.hpp"
 
 #include "common/util.h"
@@ -14,11 +13,16 @@
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
-
-
 extern "C"{
 #include "common/glutil.h"
 }
+
+
+//Clarity-bru
+time_t driveStartedTime;
+bool driveStarted = 0;
+
+
 
 // TODO: this is also hardcoded in common/transformations/camera.py
 const mat3 intrinsic_matrix = (mat3){{
@@ -393,6 +397,11 @@ static void ui_draw_world(UIState *s) {
   if (!scene->world_objects_visible) {
     return;
   }
+  
+  if(!driveStarted){
+    driveStarted = 1;
+    driveStartedTime= time(NULL);
+  }
 
   // Draw lane edges and vision/mpc tracks
   ui_draw_vision_lanes(s);
@@ -760,6 +769,33 @@ static void ui_draw_vision_brake(UIState *s) {
   nvgFill(s->vg);
 }
 
+
+static void ui_vision_draw_uptime(UIState *s) {
+  const UIScene *scene = &s->scene;
+  int ui_viz_rx = scene->ui_viz_rx;
+  int ui_viz_rw = scene->ui_viz_rw;
+  
+  
+  //uptime
+  nvgBeginPath(s->vg);
+  nvgFontFace(s->vg, "sans-bold");
+  nvgFontSize(s->vg, 45);
+
+  time_t currentTime = time(NULL);
+  time_t upTime = currentTime - driveStartedTime;
+
+  int seconds = upTime%60;
+  int minutes = (upTime/60)%60;
+  int hours = upTime/3600;
+
+  char upTimeStr[10] = "";
+  sprintf(upTimeStr, "%02i:%02i:%02i", hours, minutes, seconds); 
+  upTimeStr[9] = '\0';
+
+  nvgText(s->vg, 145, 32, upTimeStr, NULL);
+
+}
+
 static void ui_draw_vision_header(UIState *s) {
   const UIScene *scene = &s->scene;
   int ui_viz_rx = scene->ui_viz_rx;
@@ -781,6 +817,7 @@ static void ui_draw_vision_header(UIState *s) {
 #endif
   ui_draw_vision_speed(s);
   ui_draw_vision_event(s);
+  ui_vision_draw_uptime(s);
 }
 
 //BB START: functions added for the display of various items
@@ -1269,7 +1306,22 @@ static void ui_draw_vision(UIState *s) {
   glDisable(GL_BLEND);
 }
 
+void resetTripDistanceVariables(){
+  driveStarted = 0;
+  /*
+  engineOnTripDistance = 0;
+  engineOffTripDistance = 0;
+  currentTripDistance = 0;
+  previousTripDistance = 0;
+  netTripDistance = 0;
+  tripDistanceCycles = 0;
+  */
+}
+
 static void ui_draw_blank(UIState *s) {
+  if(driveStarted){
+    resetTripDistanceVariables();
+  }
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
