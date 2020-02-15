@@ -444,12 +444,13 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.speedlimitaheaddistance = datad.speedLimitAheadDistance;
     s->scene.speedlimit_valid = datad.speedLimitValid;
   // getting thermal related data for dev ui
-  //} else if (eventd.which == cereal_Event_thermal) {
-  //  struct cereal_ThermalData datad;
-  //  cereal_read_ThermalData(&datad, eventd.thermal);
+  } else if (eventd.which == cereal_Event_thermal) {
+    struct cereal_ThermalData datad;
+    cereal_read_ThermalData(&datad, eventd.thermal);
 
-  //  s->scene.pa0 = datad.pa0;
-  //  s->scene.freeSpace = datad.freeSpace;
+    s->scene.pa0 = datad.pa0;
+    s->scene.freeSpace = datad.freeSpace;
+    s->scene.cpu0 = datad.cpu0;
   } else if (eventd.which == cereal_Event_carState) {
     struct cereal_CarState datad;
     cereal_read_CarState(&datad, eventd.carState);

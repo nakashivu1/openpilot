@@ -4,8 +4,6 @@
 #include <time.h>//clarity-bru: time
 #include <string.h>//clarity-bru: strcpy
 #include <unistd.h>//clarity-bru: files
-#include <stdio.h>//clarity-bru: files
-//#include <stdlib.h>//clarity-bru: files
 #include "ui.hpp"
 
 #include "common/util.h"
@@ -931,7 +929,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
   int bb_uom_dx =  (int)(bb_w /2 - uom_fontSize*2.5) ;
 
   //add CPU temperature
-  /*
+  
   if (true) {
         char val_str[16];
     char uom_str[6];
@@ -943,7 +941,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
         val_color = nvgRGBA(255, 0, 0, 200);
       }
       // temp is alway in C * 10
-      snprintf(val_str, sizeof(val_str), "%d°C", (int)(scene->maxCpuTemp/10));
+      snprintf(val_str, sizeof(val_str), "%d°C", (int)(scene->cp0/10));
       snprintf(uom_str, sizeof(uom_str), "");
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "CPU TEMP",
         bb_rx, bb_ry, bb_uom_dx,
@@ -951,9 +949,9 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
         value_fontSize, label_fontSize, uom_fontSize );
     bb_ry = bb_y + bb_h;
   }
-  */
 
-   //add battery temperature
+
+   //clarity-bru add battery temperature
   
   if (true) {
     char val_str[16];
@@ -967,7 +965,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
       val_color = nvgRGBA(255, 188, 3, 200);
     }
 
-    //Read the file with the battery temp.  Not expecting anything above 9999
+    //Read the file with the battery temp.  1 is equal to .1 degree Celius.  Not expecting anything above 9999
     fd = open("/sys/class/power_supply/battery/subsystem/battery/temp", O_RDONLY);
     if(fd == -1)
     {
