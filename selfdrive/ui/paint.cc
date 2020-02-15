@@ -3,7 +3,6 @@
 #include <sys/stat.h>//clarity-bru: files
 #include <time.h>//clarity-bru: time
 #include <string.h>//clarity-bru: strcpy
-#include <unistd.h>//clarity-bru: files
 #include "ui.hpp"
 
 #include "common/util.h"
@@ -939,7 +938,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     char cpu_temp[5];
     int fd;
 
-    //Read the file with the CPU temp.  1 is equal to .1 degree Celius.  Not expecting anything above 9999
+    //Read the file with the CPU temp.  1 is equal to .1 degree Celius.
     fd = open("/sys/class/thermal/thermal_zone6/temp", O_RDONLY);
     if(fd == -1)
     {
@@ -954,14 +953,6 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     cpu_temp[2] = '\0';
     close(fd);
   
-      /*
-      if((int)(cpuTemp/10) > 80) {
-        val_color = nvgRGBA(255, 188, 3, 200);
-      }
-      if((int)(cpuTemp/10) > 92) {
-        val_color = nvgRGBA(255, 0, 0, 200);
-      }
-      */
       // temp is alway in C * 10
       snprintf(val_str, sizeof(val_str), "%s°C", (cpu_temp));
       snprintf(uom_str, sizeof(uom_str), "");
@@ -987,7 +978,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
       val_color = nvgRGBA(255, 188, 3, 200);
     }
 
-    //Read the file with the battery temp.  1 is equal to .1 degree Celius.  Not expecting anything above 9999
+    //Read the file with the battery temp.  1 is equal to .1 degree Celius.
     fd = open("/sys/class/power_supply/battery/subsystem/battery/temp", O_RDONLY);
     if(fd == -1)
     {
@@ -997,19 +988,6 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     {
       read(fd, &bat_temp, 4);
     }
-
-    /*
-    //clean up the last char (wierd rectangle symbol) in the line
-    for (int i=1; i<5; i++)
-    {
-      //if char is not a digit then replace it with null
-      if(isdigit(bat_temp[i]) == 0)
-          {
-            bat_temp[i] = '\0';
-            break;
-          }
-    }
-    */
      bat_temp[2] = '\0';
     
     close(fd);

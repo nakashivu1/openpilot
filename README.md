@@ -1,10 +1,17 @@
-This is based on Kegman's 0.7.2-Clarity branch.  His readme is below mine.
+This is based on Kegman's 0.7.2-Clarity branch.  His readme is below mine.0
+
+
+kegman-0.7.2-Clarity-v2
+1) Counter for the engine activations implemented
+2) engineLog.csv can be found in /data/clarity
+3) Uptime clock is at upper left conerner.
+4) Indicator for the CPU temperature, battery temperature, and battery level is implmented.  It does not change color.
 
 
 kegman-0.7.2-Clarity-v1
 1) Removed the green border.
 2) Green and orange messages are now transparent.
-3) Engine RPM indicator added without overlap.  The counter for engine activation is not implemented yet.
+3) Engine RPM indicator added without overlap.
 4) The engage and disengage sounds are normalized -30 decibels.
 
 
