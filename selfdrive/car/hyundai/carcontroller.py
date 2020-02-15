@@ -16,9 +16,9 @@ class SteerLimitParams:
   STEER_DRIVER_FACTOR = 1
   
 class LowSpeedSteerLimitParams(SteerLimitParams):
-  STEER_MAX = 350
+  STEER_MAX = 400
   STEER_DELTA_UP = 2
-  STEER_DELTA_DOWN = 6
+  STEER_DELTA_DOWN = 7
   STEER_DRIVER_ALLOWANCE = 50
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
@@ -41,7 +41,7 @@ class HighSpeedSteerLimitParams(SteerLimitParams):
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
-def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
+def process_hud_alert(enabled, fingerprint, visual_alert, left_line,
                        right_line, left_lane_depart, right_lane_depart):
 
   hud_alert = 0
@@ -49,12 +49,9 @@ def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
     hud_alert = 4
 
   # initialize to no line visible
-  
   lane_visible = 1
-  if not button_on:
-    lane_visible = 0
-  elif left_line and right_line or hud_alert:
-    if enabled or hud_alert:
+  if left_line and right_line:
+    if enabled:
       lane_visible = 3
     else:
       lane_visible = 4
