@@ -1221,6 +1221,60 @@ static void bb_ui_draw_UI(UIState *s)
 }
 //BB END: functions added for the display of various items
 
+
+void logEngineEvent(bool EngineOn, int odometer, float tripDistance, int maxRPM)
+{
+  //Create Clarity folder if it doesn't exist
+  struct stat st = {0};
+  if(stat("/data/clarity", &st) == -1){
+    mkdir("/data/clarity", 0755);
+    FILE *out = fopen("/data/clarity/engineLog.csv", "a");
+    fprintf(out, "EngineOn/Off,DateTime,Odometer(km),Trip(km),maxRPM\n");
+    fclose(out);
+  }
+  
+  //time
+  time_t curtime;
+  struct tm *loc_time;
+  curtime = time (NULL);
+  loc_time = localtime (&curtime);
+  char currentTime[sizeof(asctime(loc_time))] = "";
+  int timeSize = 25;
+  strncpy(currentTime, asctime(loc_time), timeSize);
+  currentTime[timeSize-1] = '\0';
+  
+  
+  //Write info to log
+  FILE *out = fopen("/data/clarity/engineLog.csv", "a");
+  if(EngineOn){
+    //Captures the 2.7 kilometer cycle of the trip meter.
+    engineOnTripDistance = tripDistance;
+
+    //Resets some variables
+    tripDistanceCycles = 0;
+    previousTripDistance = 0;
+    
+    fprintf(out, "On ,%s,%i\n", currentTime, odometer);
+    
+  }else{ //EngineOff
+    engineOffTripDistance = tripDistance;
+
+    //Did not cycle.  So calcultaion is straight foward.
+    if(currentTripDistance >= previousTripDistance){
+      netTripDistance = (tripDistanceCycles * 2.7) + (engineOffTripDistance - engineOnTripDistance);
+    }
+    //Did cycle.  So calculation accounts for the cycle.
+    else{
+      netTripDistance = (tripDistanceCycles * 2.7) + (2.7 - engineOffTripDistance + engineOnTripDistance);
+    }
+    fprintf(out, "Off,%s,%i,%.2f,%i\n", currentTime, odometer, netTripDistance, maxRPM);
+
+  }
+  fclose(out);
+  tripDistanceCycles = 0;
+}
+
+
 static void ui_draw_vision_footer(UIState *s) {
   const UIScene *scene = &s->scene;
   int ui_viz_rx = scene->ui_viz_rx;
