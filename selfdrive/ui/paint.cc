@@ -977,6 +977,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
       read(fd, &bat_temp, 4);
     }
 
+    /*
     //clean up the last char (wierd rectangle symbol) in the line
     for (int i=1; i<5; i++)
     {
@@ -987,10 +988,13 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
             break;
           }
     }
+    */
+     bat_temp[2] = '\0';
+    
     close(fd);
 
 
-    snprintf(val_str, sizeof(val_str), "%2.0f°C", bat_temp);
+    snprintf(val_str, sizeof(val_str), "%s°C", bat_temp);
     snprintf(uom_str, sizeof(uom_str), "");
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "BAT TEMP",
         bb_rx, bb_ry, bb_uom_dx,
