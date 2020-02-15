@@ -5,7 +5,7 @@
 #include <string.h>//clarity-bru: strcpy
 #include <unistd.h>//clarity-bru: files
 #include <stdio.h>//clarity-bru: files
-#include <stdlib.h>//clarity-bru: files
+//#include <stdlib.h>//clarity-bru: files
 #include "ui.hpp"
 
 #include "common/util.h"
@@ -959,6 +959,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     char val_str[16];
     char uom_str[6];
     char bat_temp[5] = "";
+    int fd;
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
     if (s->scene.pa0 > 50) {
       val_color = nvgRGBA(255, 0, 0, 200);
