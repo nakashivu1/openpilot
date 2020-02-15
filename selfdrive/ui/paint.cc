@@ -952,6 +952,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
   
   
     cpu_temp[2] = '\0';
+    close(fd);
   
       /*
       if((int)(cpuTemp/10) > 80) {
