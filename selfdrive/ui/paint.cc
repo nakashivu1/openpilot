@@ -937,6 +937,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
 
     int cpuTemp;
+    int fd;
 
     //Read the file with the CPU temp.  1 is equal to .1 degree Celius.  Not expecting anything above 9999
     fd = open("/sys/class/thermal/thermal_zone6/temp", O_RDONLY);
