@@ -936,7 +936,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     char uom_str[6];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
 
-    int cpuTemp;
+    char cpu_temp;
     int fd;
 
     //Read the file with the CPU temp.  1 is equal to .1 degree Celius.  Not expecting anything above 9999
@@ -947,18 +947,22 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     }
     else
     {
-      read(fd, &cpuTemp, 4);
+      read(fd, &cpu_temp, 4);
     }
   
   
+    cpu_temp[2] = '\0';
+  
+      /*
       if((int)(cpuTemp/10) > 80) {
         val_color = nvgRGBA(255, 188, 3, 200);
       }
       if((int)(cpuTemp/10) > 92) {
         val_color = nvgRGBA(255, 0, 0, 200);
       }
+      */
       // temp is alway in C * 10
-      snprintf(val_str, sizeof(val_str), "%d°C", (int)(cpuTemp/10));
+      snprintf(val_str, sizeof(val_str), "%s°C", (cpu_temp));
       snprintf(uom_str, sizeof(uom_str), "");
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "CPU TEMP",
         bb_rx, bb_ry, bb_uom_dx,
