@@ -1477,14 +1477,13 @@ static void ui_draw_vision(UIState *s) {
 
 void resetTripDistanceVariables(){
   driveStarted = 0;
-  /*
   engineOnTripDistance = 0;
   engineOffTripDistance = 0;
   currentTripDistance = 0;
   previousTripDistance = 0;
   netTripDistance = 0;
   tripDistanceCycles = 0;
-  */
+  engineOnCount = 0;
 }
 
 static void ui_draw_blank(UIState *s) {
