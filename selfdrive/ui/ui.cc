@@ -453,7 +453,7 @@ void handle_message(UIState *s, Message * msg) {
   //  s->scene.freeSpace = datad.freeSpace;
 } else if (eventd.which == cereal_Event_gpsLocation) {
     struct cereal_gpsLocation datad;
-    cereal_read_gpsLocation(&datad, eventd.gpsLocation);
+    cereal_read_GpsLocation(&datad, eventd.gpsLocation);
     s->scene.gpsAccuracy = datad.gpsAccuracy;
     s->scene.altitude = datad.altitude;
   } else if (eventd.which == cereal_Event_carState) {
