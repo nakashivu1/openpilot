@@ -143,7 +143,7 @@ class CarController():
       self.turning_signal_timer = 100
     if ((CS.left_blinker_flash or CS.right_blinker_flash) and (CS.steer_override or abs(CS.angle_steers) > 10.) and CS.v_ego < 17.5): # Disable steering when blinker on and belwo ALC speed
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
-    if abs(CS.angle_steers) < 99.:
+    if abs(CS.angle_steers) > 99.:
       self.turning_signal_timer = 100
     if self.turning_signal_timer:
       lkas_active = 0
