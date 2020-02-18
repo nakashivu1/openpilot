@@ -201,7 +201,7 @@ typedef struct UIState {
   SubSocket *uilayout_sock;
   SubSocket *carstate_sock;  
   SubSocket *gpslocation_sock;  
-  SubSocket *gps_sock;  
+  SubSocket *gpslocationexternal_sock;  
   Poller * poller;
 
   int active_app;
