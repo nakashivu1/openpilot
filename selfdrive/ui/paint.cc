@@ -1048,16 +1048,14 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     char uom_str[3];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
     //show red/orange if gps accuracy is high
-    /*
       if(scene->gpsAccuracy > 0.59) {
          val_color = nvgRGBA(255, 188, 3, 200);
       }
       if(scene->gpsAccuracy > 0.8) {
          val_color = nvgRGBA(255, 0, 0, 200);
       }
-      */
     // gps accuracy is always in meters
-    snprintf(val_str, sizeof(val_str), "%.0f", (s->scene.gpsAccuracy));
+    snprintf(val_str, sizeof(val_str), "%.2f", (s->scene.gpsAccuracy));
     snprintf(uom_str, sizeof(uom_str), "m");;
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "GPS PREC",
         bb_rx, bb_ry, bb_uom_dx,
@@ -1094,7 +1092,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
 
 
-    snprintf(val_str, sizeof(val_str), "%.0f", (s->scene.altitude));
+    snprintf(val_str, sizeof(val_str), "%.2f", (s->scene.altitude));
     snprintf(uom_str, sizeof(uom_str), "m");;
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "ALTITUDE",
         bb_rx, bb_ry, bb_uom_dx,

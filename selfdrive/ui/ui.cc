@@ -115,6 +115,7 @@ static void ui_init(UIState *s) {
   //s->thermal_sock = SubSocket::create(s->ctx, "thermal");
   s->carstate_sock = SubSocket::create(s->ctx, "carState");
   s->gpslocation_sock = SubSocket::create(s->ctx, "gpsLocation");
+  s->gps_sock = SubSocket::create(s->ctx, "gpsLocationExternal");
 
   assert(s->model_sock != NULL);
   assert(s->controlsstate_sock != NULL);
@@ -124,6 +125,7 @@ static void ui_init(UIState *s) {
   //assert(s->thermal_sock != NULL);
   assert(s->carstate_sock != NULL);
   assert(s->gpslocation_sock != NULL);
+  assert(s->gps_sock != NULL);
 
   s->poller = Poller::create({
                               s->model_sock,
@@ -132,7 +134,8 @@ static void ui_init(UIState *s) {
                               s->livecalibration_sock,
                               s->radarstate_sock,
 	                            s->carstate_sock,
-	                            s->gpslocation_sock
+	                            s->gpslocation_sock,
+	                            s->gps_sock
                              });
 
   /*
@@ -454,9 +457,24 @@ void handle_message(UIState *s, Message * msg) {
 
   //  s->scene.pa0 = datad.pa0;
   //  s->scene.freeSpace = datad.freeSpace;
+  /*//GPS from cell phone, not ublox.
 } else if (eventd.which == cereal_Event_gpsLocation) {
     struct cereal_GpsLocationData datad;
     cereal_read_GpsLocationData(&datad, eventd.gpsLocation);
+    s->scene.gpsAccuracy = datad.accuracy;
+    s->scene.altitude = datad.altitude;
+    */
+} else if (eventd.which == cereal_Event_gpsLocationExternal) {
+    struct cereal_GpsLocationData datad;
+    cereal_read_GpsLocationData(&datad, eventd.gpsLocationExternal);
+    if (s->scene.gpsAccuracy > 100)
+    {
+      s->scene.gpsAccuracy = 99.99;
+    }
+    else if (s->scene.gpsAccuracy == 0)
+    {
+      s->scene.gpsAccuracy = 99.8;
+    }
     s->scene.gpsAccuracy = datad.accuracy;
     s->scene.altitude = datad.altitude;
   } else if (eventd.which == cereal_Event_carState) {
