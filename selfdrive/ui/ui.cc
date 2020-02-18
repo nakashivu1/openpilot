@@ -464,7 +464,7 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.gpsAccuracyPhone = datad.accuracy;
     s->scene.altitudePhone = datad.altitude;
     s->scene.speedPhone = datad.speed;
-    s->scene.bearingPhone = datad.bering;
+    s->scene.bearingPhone = datad.bearing;
     
 } else if (eventd.which == cereal_Event_gpsLocationExternal) {
     struct cereal_GpsLocationData datad;
@@ -481,7 +481,7 @@ void handle_message(UIState *s, Message * msg) {
 
     s->scene.altitudeUblox = datad.altitude;
     s->scene.speedUblox = datad.speed;
-    s->scene.bearingUblox = datad.bering;
+    s->scene.bearingUblox = datad.bearing;
   } else if (eventd.which == cereal_Event_carState) {
     struct cereal_CarState datad;
     cereal_read_CarState(&datad, eventd.carState);
