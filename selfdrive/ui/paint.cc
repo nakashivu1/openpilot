@@ -667,30 +667,30 @@ static void ui_draw_vision_speed(UIState *s) {
 
   nvgText(s->vg, 145, 32, upTimeStr, NULL);
   //Debuging.  Y-values should be 30 pixels apart
-  /*
+  
   char buffer[20] = "";
   nvgTextAlign(s->vg, NVG_ALIGN_LEFT| NVG_ALIGN_BASELINE);
 
-  nvgText(s->vg, 260, 50, "tripDistance:", NULL);
-  sprintf(buffer,"%.2f", scene->tripDistance);
+  nvgText(s->vg, 260, 50, "gpsAcurracy:", NULL);
+  sprintf(buffer,"%.2f | %.2f", scene->gpsAccurracyPhone, scene->gpsAccurracyUblox );
   buffer[4] = '\0';
   nvgText(s->vg, 700, 50, buffer, NULL);
 
-  nvgText(s->vg, 260, 80, "engineOnTripDistance:", NULL);
-  sprintf(buffer,"%.2f", engineOnTripDistance);
+  nvgText(s->vg, 260, 80, "altitude:", NULL);
+  sprintf(buffer,"%.2f | %.2f", scene->altitudePhone, scene->altitudeUblox );
   buffer[4] = '\0';
   nvgText(s->vg, 700, 80, buffer, NULL);
 
-  nvgText(s->vg, 260, 110, "engineOffTripDistance:", NULL);
-  sprintf(buffer,"%.2f", engineOffTripDistance);
+  nvgText(s->vg, 260, 110, "speed:", NULL);
+  sprintf(buffer,"%.2f | %.2f", scene->speedPhone, scene->speedUblox );
   buffer[4] = '\0';
   nvgText(s->vg, 700, 110, buffer, NULL);
 
-  nvgText(s->vg, 260, 170, "currentTripDistance:", NULL);
-  sprintf(buffer,"%.2f", currentTripDistance);
+  nvgText(s->vg, 260, 170, "bearing:", NULL);
+  sprintf(buffer,"%.2f | %.2f", scene->bearingPhone, scene->bearingUblox );
   buffer[4] = '\0';
   nvgText(s->vg, 700, 170, buffer, NULL);
-
+/*
   nvgText(s->vg, 260, 200, "previousTripDistance:", NULL);
   sprintf(buffer,"%.2f", previousTripDistance);
   buffer[4] = '\0';
@@ -1055,7 +1055,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
          val_color = nvgRGBA(255, 0, 0, 200);
       }
     // gps accuracy is always in meters
-    snprintf(val_str, sizeof(val_str), "%.2f", (s->scene.gpsAccuracy));
+    snprintf(val_str, sizeof(val_str), "%.2f", (s->scene.gpsAccuracyUblox));
     snprintf(uom_str, sizeof(uom_str), "m");;
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "GPS PREC",
         bb_rx, bb_ry, bb_uom_dx,
@@ -1092,7 +1092,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
 
 
-    snprintf(val_str, sizeof(val_str), "%.2f", (s->scene.altitude));
+    snprintf(val_str, sizeof(val_str), "%.2f", (s->scene.altitudeUblox));
     snprintf(uom_str, sizeof(uom_str), "m");;
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "ALTITUDE",
         bb_rx, bb_ry, bb_uom_dx,

@@ -457,26 +457,31 @@ void handle_message(UIState *s, Message * msg) {
 
   //  s->scene.pa0 = datad.pa0;
   //  s->scene.freeSpace = datad.freeSpace;
-  /*//GPS from cell phone, not ublox.
+  //GPS from cell phone, not ublox.
 } else if (eventd.which == cereal_Event_gpsLocation) {
     struct cereal_GpsLocationData datad;
     cereal_read_GpsLocationData(&datad, eventd.gpsLocation);
-    s->scene.gpsAccuracy = datad.accuracy;
-    s->scene.altitude = datad.altitude;
-    */
+    s->scene.gpsAccuracyPhone = datad.accuracy;
+    s->scene.altitudePhone = datad.altitude;
+    s->scene.speedPhone = datad.speed;
+    s->scene.bearingPhone = datad.bering;
+    
 } else if (eventd.which == cereal_Event_gpsLocationExternal) {
     struct cereal_GpsLocationData datad;
     cereal_read_GpsLocationData(&datad, eventd.gpsLocationExternal);
-    if (s->scene.gpsAccuracy > 100)
+    s->scene.gpsAccuracyUblox = datad.accuracy;
+    if (s->scene.gpsAccuracyUblox > 100)
     {
-      s->scene.gpsAccuracy = 99.99;
+      s->scene.gpsAccuracyUblox = 99.99;
     }
-    else if (s->scene.gpsAccuracy == 0)
+    else if (s->scene.gpsAccuracyUblox == 0)
     {
-      s->scene.gpsAccuracy = 99.8;
+      s->scene.gpsAccuracyUblox = 99.8;
     }
-    s->scene.gpsAccuracy = datad.accuracy;
-    s->scene.altitude = datad.altitude;
+
+    s->scene.altitudeUblox = datad.altitude;
+    s->scene.speedUblox = datad.speed;
+    s->scene.bearingUblox = datad.bering;
   } else if (eventd.which == cereal_Event_carState) {
     struct cereal_CarState datad;
     cereal_read_CarState(&datad, eventd.carState);

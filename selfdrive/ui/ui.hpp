@@ -148,8 +148,15 @@ typedef struct UIScene {
   float tripDistance;
   
   int cpu0;
-  float gpsAccuracy;
-  float altitude;
+  float gpsAccuracyPhone;
+  float altitudePhone;
+  float speedPhone;
+  float bearingPhone;
+
+  float gpsAccuracyUblox;
+  float altitudeUblox;
+  float speedUblox;
+  float bearingUblox;
 } UIScene;
 
 //int engineOnCount = 0;
