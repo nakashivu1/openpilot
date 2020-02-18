@@ -673,23 +673,23 @@ static void ui_draw_vision_speed(UIState *s) {
 
   nvgText(s->vg, 260, 50, "gpsAcurracy:", NULL);
   sprintf(buffer,"%.2f | %.2f", scene->gpsAccuracyPhone, scene->gpsAccuracyUblox );
-  buffer[10] = '\0';
-  nvgText(s->vg, 400, 50, buffer, NULL);
+  buffer[15] = '\0';
+  nvgText(s->vg, 550, 50, buffer, NULL);
 
   nvgText(s->vg, 260, 80, "altitude:", NULL);
   sprintf(buffer,"%.2f | %.2f", scene->altitudePhone, scene->altitudeUblox );
-  buffer[10] = '\0';
-  nvgText(s->vg, 400, 80, buffer, NULL);
+  buffer[15] = '\0';
+  nvgText(s->vg, 550, 80, buffer, NULL);
 
   nvgText(s->vg, 260, 110, "speed:", NULL);
   sprintf(buffer,"%.2f | %.2f", scene->speedPhone, scene->speedUblox );
-  buffer[10] = '\0';
-  nvgText(s->vg, 400, 110, buffer, NULL);
+  buffer[15] = '\0';
+  nvgText(s->vg, 550, 110, buffer, NULL);
 
   nvgText(s->vg, 260, 170, "bearing:", NULL);
   sprintf(buffer,"%.2f | %.2f", scene->bearingPhone, scene->bearingUblox );
-  buffer[10] = '\0';
-  nvgText(s->vg, 400, 170, buffer, NULL);
+  buffer[15] = '\0';
+  nvgText(s->vg, 550, 170, buffer, NULL);
 /*
   nvgText(s->vg, 260, 200, "previousTripDistance:", NULL);
   sprintf(buffer,"%.2f", previousTripDistance);
