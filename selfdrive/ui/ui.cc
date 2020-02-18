@@ -114,7 +114,7 @@ static void ui_init(UIState *s) {
   s->radarstate_sock = SubSocket::create(s->ctx, "radarState");
   //s->thermal_sock = SubSocket::create(s->ctx, "thermal");
   s->carstate_sock = SubSocket::create(s->ctx, "carState");
-  s->gpslocationexternal_sock = SubSocket::create(s->ctx, "gpsLocationExternal");
+  s->gpslocation_sock = SubSocket::create(s->ctx, "gpsLocation");
 
   assert(s->model_sock != NULL);
   assert(s->controlsstate_sock != NULL);
@@ -123,7 +123,7 @@ static void ui_init(UIState *s) {
   assert(s->radarstate_sock != NULL);
   //assert(s->thermal_sock != NULL);
   assert(s->carstate_sock != NULL);
-  assert(s->gpslocationexternal_sock != NULL);
+  assert(s->gpslocation_sock != NULL);
 
   s->poller = Poller::create({
                               s->model_sock,
@@ -132,7 +132,7 @@ static void ui_init(UIState *s) {
                               s->livecalibration_sock,
                               s->radarstate_sock,
 	                            s->carstate_sock,
-	                            s->gpslocationexternal_sock
+	                            s->gpslocation_sock
                              });
 
   /*
