@@ -33,7 +33,7 @@ class HighSpeedSteerLimitParams(SteerLimitParams):
   STEER_DRIVER_FACTOR = 1
 
 class HighAngleSteerLimitParams(SteerLimitParams):
-  STEER_MAX = 150
+  STEER_MAX = 100
   STEER_DELTA_UP = 1
   STEER_DELTA_DOWN = 6
   STEER_DRIVER_ALLOWANCE = 50
@@ -116,9 +116,9 @@ class CarController():
 
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
-    if CS.v_ego < 10 and not abs(CS.angle_steers) > 100.:
+    if CS.v_ego < 10 and not abs(CS.angle_steers) > 85.:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
-    elif CS.v_ego < 10 and abs(CS.angle_steers) > 100.:
+    elif CS.v_ego < 10 and abs(CS.angle_steers) > 85.:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighAngleSteerLimitParams)
     elif CS.v_ego > 30:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighSpeedSteerLimitParams)
@@ -134,7 +134,7 @@ class CarController():
 
     # disable if steer angle reach 90 deg, otherwise mdps fault in some models
     if self.car_fingerprint == CAR.GENESIS:
-      lkas_active = enabled and self.lkas_button
+      lkas_active = enabled and self.lkas_button and abs(CS.angle_steers) < 91.
     else:
       lkas_active = enabled and self.lkas_button
 
@@ -143,8 +143,6 @@ class CarController():
       self.turning_signal_timer = 100
     if ((CS.left_blinker_flash or CS.right_blinker_flash) and (CS.steer_override or abs(CS.angle_steers) > 10.) and CS.v_ego < 17.5): # Disable steering when blinker on and belwo ALC speed
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
-    if abs(CS.angle_steers) > 99.:
-      self.turning_signal_timer = 100
     if self.turning_signal_timer:
       lkas_active = 0
       self.turning_signal_timer -= 1
