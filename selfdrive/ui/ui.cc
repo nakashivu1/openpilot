@@ -501,20 +501,7 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.leftBlinker = datad.leftBlinker;
     s->scene.rightBlinker = datad.rightBlinker;
   // getting thermal related data for dev ui
-  }
-  capn_free(&ctx);
-}
-
-void handle_message(UIState *s, Message * msg) {
-  struct capn ctx;
-  capn_init_mem(&ctx, (uint8_t*)msg->getData(), msg->getSize(), 0);
-
-  cereal_Event_ptr eventp;
-  eventp.p = capn_getp(capn_root(&ctx), 0, 1);
-  struct cereal_Event eventd;
-  cereal_read_Event(&eventd, eventp);
-
-  if (eventd.which == cereal_Event_thermal) {
+  } else if (eventd.which == cereal_Event_thermal) {
     struct cereal_ThermalData datad;
     cereal_read_ThermalData(&datad, eventd.thermal);
 
