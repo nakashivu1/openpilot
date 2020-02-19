@@ -273,7 +273,7 @@ typedef struct UIState {
   track_vertices_data track_vertices[2];
 
   // dev ui
-  SubSocket *thermal_sock;
+  //SubSocket *thermal_sock;
 } UIState;
 
 // API

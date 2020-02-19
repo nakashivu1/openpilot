@@ -464,7 +464,6 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
   int bb_uom_dx =  (int)(bb_w /2 - uom_fontSize*2.5) ;
 
   //add CPU temperature
-/*
   if (true) {
         char val_str[16];
     char uom_str[6];
@@ -484,20 +483,20 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
         value_fontSize, label_fontSize, uom_fontSize );
     bb_ry = bb_y + bb_h;
   }
-*/
 
    //add battery temperature
   if (true) {
     char val_str[16];
     char uom_str[6];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
-    if (s->scene.pa0 > 50) {
-      val_color = nvgRGBA(255, 0, 0, 200);
-    } else if (s->scene.pa0 > 40) {
+    if((int)(scene->maxBatTemp/1000) > 40) {
       val_color = nvgRGBA(255, 188, 3, 200);
     }
-
-    snprintf(val_str, sizeof(val_str), "%2.0f°C", s->scene.pa0);
+    if((int)(scene->maxBatTemp/1000) > 50) {
+      val_color = nvgRGBA(255, 0, 0, 200);
+    }
+    // temp is alway in C * 1000
+    snprintf(val_str, sizeof(val_str), "%d°C", (int)(scene->maxBatTemp/1000));
     snprintf(uom_str, sizeof(uom_str), "");
     bb_h +=bb_ui_draw_measure(s,  val_str, uom_str, "BAT TEMP",
         bb_rx, bb_ry, bb_uom_dx,
