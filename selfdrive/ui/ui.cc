@@ -466,27 +466,6 @@ void handle_message(UIState *s, Message * msg) {
       s->scene.mpc_y[i] = capn_to_f32(capn_get32(y_list, i));
     }
     s->livempc_or_radarstate_changed = true;
-  // getting thermal related data for dev ui
-  } else if (eventd.which == cereal_Event_thermal) {
-    struct cereal_ThermalData datad;
-    cereal_read_ThermalData(&datad, eventd.thermal);
-    //BBB CPU TEMP
-    s->scene.maxCpuTemp = datad.cpu0;
-    if (s->scene.maxCpuTemp < datad.cpu1)
-    {
-      s->scene.maxCpuTemp = datad.cpu1;
-    }
-    else if (s->scene.maxCpuTemp < datad.cpu2)
-    {
-      s->scene.maxCpuTemp = datad.cpu2;
-    }
-    else if (s->scene.maxCpuTemp < datad.cpu3)
-    {
-      s->scene.maxCpuTemp = datad.cpu3;
-    }
-    s->scene.maxBatTemp = datad.bat;
-    s->scene.freeSpace = datad.freeSpace;
-    //BBB END CPU TEMP
   } else if (eventd.which == cereal_Event_uiLayoutState) {
     struct cereal_UiLayoutState datad;
     cereal_read_UiLayoutState(&datad, eventd.uiLayoutState);
@@ -522,7 +501,6 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.leftBlinker = datad.leftBlinker;
     s->scene.rightBlinker = datad.rightBlinker;
   // getting thermal related data for dev ui
-    /*
   }
   capn_free(&ctx);
 }
@@ -533,16 +511,15 @@ void handle_message(UIState *s, Message * msg) {
 
   cereal_Event_ptr eventp;
   eventp.p = capn_getp(capn_root(&ctx), 0, 1);
-  struct Event eventd;
+  struct cereal_Event eventd;
   cereal_read_Event(&eventd, eventp);
 
   if (eventd.which == cereal_Event_thermal) {
     struct cereal_ThermalData datad;
-    cereal_read_ThermalData(&datad, event.thermal);
+    cereal_read_ThermalData(&datad, eventd.thermal);
 
     s->scene.pa0 = datad.pa0;
     s->scene.freeSpace = datad.freeSpace;
-    */
   }
   capn_free(&ctx);
 }
