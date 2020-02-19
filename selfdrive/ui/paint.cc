@@ -464,7 +464,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
   int bb_uom_dx =  (int)(bb_w /2 - uom_fontSize*2.5) ;
 
   //add CPU temperature
-  if (true) {
+/*  if (true) {
         char val_str[16];
     char uom_str[6];
     NVGcolor val_color = nvgRGBA(255, 255, 255, 200);
@@ -504,7 +504,7 @@ static void bb_ui_draw_measures_left(UIState *s, int bb_x, int bb_y, int bb_w ) 
         value_fontSize, label_fontSize, uom_fontSize );
     bb_ry = bb_y + bb_h;
   }
-
+*/
   //add grey panda GPS accuracy
   /*if (true) {
     char val_str[16];
