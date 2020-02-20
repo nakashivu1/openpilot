@@ -145,11 +145,12 @@ typedef struct UIScene {
   bool gps_planner_active;
 
   // dev ui
+  uint16_t maxCpuTemp;
+  uint32_t maxBatTemp;
+  uint64_t started_ts;
   float angleSteersDes;
   float pa0;
   float freeSpace;
-  uint16_t maxCpuTemp;
-  uint32_t maxBatTemp;
 
 } UIScene;
 
