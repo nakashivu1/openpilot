@@ -134,8 +134,8 @@ static void ui_init(UIState *s) {
                               s->livecalibration_sock,
                               s->radarstate_sock,
                               s->carstate_sock,
-                              s->livempc_sock
-                              s->thermal_sock,
+                              s->livempc_sock,
+                              s->thermal_sock
                              });
 
 
