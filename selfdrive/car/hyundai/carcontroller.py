@@ -9,9 +9,33 @@ from opendbc.can.packer import CANPacker
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 class SteerLimitParams:
-  STEER_MAX = 255   # 409 is the max, 255 is stock
+  STEER_MAX = 408   # 409 is the max, 255 is stock
   STEER_DELTA_UP = 3
   STEER_DELTA_DOWN = 7
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+  
+class LowSpeedSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 408
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 7
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+
+class HighSpeedSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 408
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 7
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+
+class HighAngleSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 100
+  STEER_DELTA_UP = 1
+  STEER_DELTA_DOWN = 6
   STEER_DRIVER_ALLOWANCE = 50
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
@@ -42,10 +66,8 @@ def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
   # initialize to no line visible
   
   lane_visible = 1
-  if not button_on:
-    lane_visible = 0
-  elif left_line and right_line or hud_alert: #HUD alert only display when LKAS status is active
-    if enabled or hud_alert:
+  if left_line and right_line:
+    if enabled:
       lane_visible = 3
     else:
       lane_visible = 4
@@ -94,7 +116,14 @@ class CarController():
 
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
-    apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
+    if CS.v_ego < 10 and not abs(CS.angle_steers) > 85.:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
+    elif CS.v_ego < 10 and abs(CS.angle_steers) > 85.:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighAngleSteerLimitParams)
+    elif CS.v_ego > 30:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighSpeedSteerLimitParams)
+    else:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
     self.steer_rate_limited = new_steer != apply_steer
 
     ### LKAS button to temporarily disable steering
@@ -105,7 +134,7 @@ class CarController():
 
     # disable if steer angle reach 90 deg, otherwise mdps fault in some models
     if self.car_fingerprint == CAR.GENESIS:
-      lkas_active = enabled and abs(CS.angle_steers) < 90. and self.lkas_button
+      lkas_active = enabled and self.lkas_button and abs(CS.angle_steers) < 91.
     else:
       lkas_active = enabled and self.lkas_button
 
