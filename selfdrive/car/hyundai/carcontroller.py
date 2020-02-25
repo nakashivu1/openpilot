@@ -24,7 +24,7 @@ class LowSpeedSteerLimitParams(SteerLimitParams):
   STEER_DRIVER_FACTOR = 1
 
 class HighAngleSteerLimitParams(SteerLimitParams):
-  STEER_MAX = 150
+  STEER_MAX = 100
   STEER_DELTA_UP = 1
   STEER_DELTA_DOWN = 6
   STEER_DRIVER_ALLOWANCE = 50
@@ -50,8 +50,8 @@ def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
 
   # initialize to no line visible
   lane_visible = 1
-  if left_line and right_line:
-    if enabled:
+  if left_line and right_line or hud_alert:
+    if enabled or hud_alert:
       lane_visible = 3
     else:
       lane_visible = 4
@@ -106,7 +106,7 @@ class CarController():
         self.lkas_button = not self.lkas_button
       self.lkas_button_last = CS.lkas_button_on
 
-    lkas_active = enabled and abs(CS.angle_steers) < 90. and self.lkas_button
+    lkas_active = enabled and abs(CS.angle_steers) < 90. and not self.lkas_button
 
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
     if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
