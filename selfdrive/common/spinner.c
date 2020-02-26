@@ -114,7 +114,7 @@ int spin(int argc, char** argv) {
     // background
     nvgBeginPath(vg);
     NVGpaint bg = nvgLinearGradient(vg, fb_w, 0, fb_w, fb_h,
-    nvgRGBA(0, 0, 0, 175), nvgRGBA(0, 0, 0, 255));
+    nvgRGBA(0, 0, 0, 255), nvgRGBA(0, 0, 0, 255));
     nvgFillPaint(vg, bg);
     nvgRect(vg, 0, 0, fb_w, fb_h);
     nvgFill(vg);
@@ -144,7 +144,7 @@ int spin(int argc, char** argv) {
       // draw progress bar
       int progress_width = 1000;
       int progress_x = fb_w/2-progress_width/2;
-      int progress_y = 775;
+      int progress_y = 775
       int progress_height = 25;
 
       NVGpaint paint = nvgBoxGradient(
