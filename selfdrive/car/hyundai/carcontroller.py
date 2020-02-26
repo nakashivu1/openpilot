@@ -134,7 +134,7 @@ class CarController():
 
     # disable if steer angle reach 90 deg, otherwise mdps fault in some models
     if self.car_fingerprint == CAR.GENESIS:
-      lkas_active = enabled and self.lkas_button and abs(CS.angle_steers) < 91.
+      lkas_active = enabled and not self.lkas_button and abs(CS.angle_steers) < 91.
     else:
       lkas_active = enabled and self.lkas_button
 
