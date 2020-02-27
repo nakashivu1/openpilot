@@ -336,7 +336,7 @@ void dashcam( UIState *s, int touch_x, int touch_y ) {
     // Assume car is not in drive so stop recording
     stop_capture();
   }
-  if (s->scene.v_ego > 2) {
+  if (s->scene.v_ego > 1.1 && captureState == CAPTURE_STATE_NOT_CAPTURING) {
     start_capture();
   }
   s->scene.recording = (captureState != CAPTURE_STATE_NOT_CAPTURING);
