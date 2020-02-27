@@ -1,4 +1,5 @@
 #include <time.h>
+#include <dirent.h>
 
 #define CAPTURE_STATE_NONE 0
 #define CAPTURE_STATE_CAPTURING 1
@@ -332,9 +333,13 @@ void dashcam( UIState *s, int touch_x, int touch_y ) {
   if (screen_lock_button_clicked(touch_x,touch_y,lock_button)) {
     screen_toggle_lock();
   }
+  if (!s->vision_connected) {
+    // Assume car is not in drive so stop recording
+    stop_capture();
+  }
   if (s->scene.v_ego > 2.1 && captureState == CAPTURE_STATE_NOT_CAPTURING) {
     start_capture();
-  } else if (!s->vision_connected) {
+  } else if (s->scene.v_ego < 1.5 && !s->scene.engaged) {
     stop_capture();
   }
   s->scene.recording = (captureState != CAPTURE_STATE_NOT_CAPTURING);
