@@ -491,6 +491,7 @@ void handle_message(UIState *s, Message * msg) {
   } else if (eventd.which == cereal_Event_gpsLocationExternal) {
     struct cereal_GpsLocationData datad;
     cereal_read_GpsLocationData(&datad, eventd.gpsLocationExternal);
+    s->scene.gpsAccuracy = datad.accuracy;
     if (s->scene.gpsAccuracy > 100)
     {
       s->scene.gpsAccuracy = 99.99;
@@ -499,7 +500,6 @@ void handle_message(UIState *s, Message * msg) {
     {
       s->scene.gpsAccuracy = 99.8;
     }
-    s->scene.gpsAccuracy = datad.accuracy;
   }
   capn_free(&ctx);
 }
