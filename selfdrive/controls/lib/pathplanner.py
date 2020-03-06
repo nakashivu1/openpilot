@@ -155,8 +155,14 @@ class PathPlanner():
     one_blinker = sm['carState'].leftBlinker != sm['carState'].rightBlinker
     below_lane_change_speed = v_ego < 40 * CV.MPH_TO_MS
 
-    if not active or self.lane_change_timer > 10.0:
+    if sm['carState'].leftBlinker:
+      self.lane_change_direction = LaneChangeDirection.left
+    elif sm['carState'].rightBlinker:
+      self.lane_change_direction = LaneChangeDirection.right
+
+    if not active or self.lane_change_timer > 10.0 or (not one_blinker) or (sm['carState'].steeringPressed and ((sm['carState'].steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.right) or (sm['carState'].steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.left))):
       self.lane_change_state = LaneChangeState.off
+      self.lane_change_direction = LaneChangeDirection.none
     else:
       if sm['carState'].leftBlinker:
         lane_change_direction = LaneChangeDirection.left
