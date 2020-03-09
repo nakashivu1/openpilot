@@ -24,8 +24,8 @@ def create_lkas11(packer, car_fingerprint, bus, apply_steer, steer_req, cnt, ena
     "CF_Lkas_FcwCollisionWarning": lkas11["CF_Lkas_FcwCollisionWarning"] if keep_stock else 0,
     "CF_Lkas_FusionState": lkas11["CF_Lkas_FusionState"] if keep_stock else 0,
     "CF_Lkas_Chksum": 0,
-    "CF_Lkas_FcwOpt_USM": lkas11["CF_Lkas_FcwOpt_USM"] if keep_stock else 2,
-    "CF_Lkas_LdwsOpt_USM": lkas11["CF_Lkas_LdwsOpt_USM"] if keep_stock else 3,
+    "CF_Lkas_FcwOpt_USM": 2,
+    "CF_Lkas_LdwsOpt_USM": 3,
   }
   if car_fingerprint == CAR.GENESIS:
     values["CF_Lkas_Bca_R"] = 2
