@@ -7,7 +7,7 @@
 #define CAPTURE_STATE_PAUSED 3
 #define CLICK_TIME 0.2
 #define RECORD_INTERVAL 180 // Time in seconds to rotate recordings; Max for screenrecord is 3 minutes
-#define RECORD_FILES 40 // Number of files to create before looping over
+#define RECORD_FILES 5 // Number of files to create before looping over
 
 typedef struct dashcam_element {
   int pos_x;
@@ -83,7 +83,7 @@ void save_file(char *videos_dir, char *filename) {
 }
 
 void stop_capture() {
-  char videos_dir[50] = "/sdcard/videos";
+  char videos_dir[50] = "/storage/emulated/0/videos";
 
   if (captureState == CAPTURE_STATE_CAPTURING) {
     system("killall -SIGINT screenrecord");
@@ -105,7 +105,7 @@ void stop_capture() {
 void start_capture() {
   captureState = CAPTURE_STATE_CAPTURING;
   char cmd[128] = "";
-  char videos_dir[50] = "/sdcard/videos";
+  char videos_dir[50] = "/storage/emulated/0/videos";
 
   //////////////////////////////////
   // NOTE: make sure videos_dir folder exists on the device!
@@ -114,17 +114,17 @@ void start_capture() {
   if (stat(videos_dir, &st) == -1) {
     mkdir(videos_dir,0700);
   }
-  /*if (captureNum == 0 && files_created == 0) {
+  if (captureNum == 0 && files_created == 0) {
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir ("/sdcard/videos")) != NULL) {
+    if ((dir = opendir ("/storage/emulated/0/videos")) != NULL) {
       while ((ent = readdir (dir)) != NULL) {
         strcpy(filenames[files_created++], ent->d_name);
       }
       captureNum = files_created;
       closedir (dir);
     }
-  }*/
+  }
 
   if (strlen(filenames[captureNum]) && files_created >= RECORD_FILES) {
     if (locked_files[captureNum] > 0) {
@@ -256,7 +256,7 @@ void draw_lock_button(UIState *s) {
 
 static void screen_draw_button(UIState *s, int touch_x, int touch_y) {
   // Set button to bottom left of screen
-  if (s->vision_connected && s->plus_state == 0) {
+  if (s->vision_connected) {
 
     if (captureState == CAPTURE_STATE_CAPTURING) {
       draw_lock_button(s);
