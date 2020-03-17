@@ -243,10 +243,10 @@ ALERTS = [
 
   Alert(
       "belowSteerSpeed",
-      "TAKE CONTROL",
+      "",
       "Steer Unavailable Below ",
       AlertStatus.userPrompt, AlertSize.mid,
-      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, 0., 0.4, .3),
+      Priority.MID, VisualAlert.none, AudibleAlert.none, 0., 0.4, .3),
 
   Alert(
       "debugAlert",
