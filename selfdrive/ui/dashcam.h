@@ -83,7 +83,7 @@ void save_file(char *videos_dir, char *filename) {
 }
 
 void stop_capture() {
-  char videos_dir[50] = "/sdcard/videos";
+  char videos_dir[50] = "/storage/emulated/0/videos";
 
   if (captureState == CAPTURE_STATE_CAPTURING) {
     system("killall -SIGINT screenrecord");
@@ -105,7 +105,7 @@ void stop_capture() {
 void start_capture() {
   captureState = CAPTURE_STATE_CAPTURING;
   char cmd[128] = "";
-  char videos_dir[50] = "/sdcard/videos";
+  char videos_dir[50] = "/storage/emulated/0/videos";
 
   //////////////////////////////////
   // NOTE: make sure videos_dir folder exists on the device!
@@ -117,7 +117,7 @@ void start_capture() {
   /*if (captureNum == 0 && files_created == 0) {
     DIR *dir;
     struct dirent *ent;
-    if ((dir = opendir ("/sdcard/videos")) != NULL) {
+    if ((dir = opendir ("/storage/emulated/0/videos")) != NULL) {
       while ((ent = readdir (dir)) != NULL) {
         strcpy(filenames[files_created++], ent->d_name);
       }
