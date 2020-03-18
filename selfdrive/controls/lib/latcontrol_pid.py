@@ -1,6 +1,7 @@
 from selfdrive.controls.lib.pid import PIController
 from selfdrive.controls.lib.drive_helpers import get_steer_max
 from cereal import car
+from cereal import log
 
 
 class LatControlPID():
@@ -9,7 +10,7 @@ class LatControlPID():
                             (CP.lateralTuning.pid.kiBP, CP.lateralTuning.pid.kiV),
                             k_f=CP.lateralTuning.pid.kf, pos_limit=1.0, sat_limit=CP.steerLimitTimer)
     self.angle_steers_des = 0.
-    self.accel_limit = 0.01      # 100x degrees/sec**2
+    self.accel_limit = 0.1      # 100x degrees/sec**2
     self.angle_rate_des = 0.0    # degrees/sec, rate dynamically limited by accel_limit
 
   def reset(self):

@@ -124,7 +124,6 @@ class CarController():
 
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
-    if CS.v_ego < 10 and not abs(CS.angle_steers) > 85.:
     if self.car_fingerprint == CAR.ELANTRA:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, ElantraSteerLimitParams)
     elif CS.v_ego < 10 and not abs(CS.angle_steers) > 85.:
