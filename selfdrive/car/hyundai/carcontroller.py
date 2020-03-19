@@ -87,9 +87,9 @@ def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
   return hud_alert, lane_visible, left_lane_warning, right_lane_warning
 
 class CarController():
-  def __init__(self, dbc_name, car_fingerprint):
+  def __init__(self, dbc_name, CP, VM):
     self.packer = CANPacker(dbc_name)
-    self.car_fingerprint = car_fingerprint
+    self.car_fingerprint = CP.carFingerprint
     self.accel_steady = 0
     self.apply_steer_last = 0
     self.steer_rate_limited = False
@@ -117,13 +117,13 @@ class CarController():
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
     if CS.v_ego < 10 and not abs(CS.angle_steers) > 85.:
-      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, LowSpeedSteerLimitParams)
     elif CS.v_ego < 10 and abs(CS.angle_steers) > 85.:
-      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighAngleSteerLimitParams)
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, HighAngleSteerLimitParams)
     elif CS.v_ego > 20 and abs(CS.angle_steers) < 5.:
-      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighSpeedSteerLimitParams)
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, HighSpeedSteerLimitParams)
     else:
-      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, SteerLimitParams)
     self.steer_rate_limited = new_steer != apply_steer
 
     ### LKAS button to temporarily disable steering
@@ -191,7 +191,7 @@ class CarController():
       can_sends.append(create_scc12(self.packer, apply_accel, enabled, self.scc12_cnt, CS.scc12))
       self.scc12_cnt += 1
 
-    if CS.stopped:
+    if CS.out.cruiseState.standstill:
       # run only first time when the car stopped
       if self.last_lead_distance == 0:
         # get the lead distance from the Radar
@@ -207,7 +207,7 @@ class CarController():
           self.resume_cnt = 0
     # reset lead distnce after the car starts moving
     elif self.last_lead_distance != 0:
-      self.last_lead_distance = 0  
+      self.last_lead_distance = 0
 
     self.lkas11_cnt += 1
 

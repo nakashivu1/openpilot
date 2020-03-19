@@ -8,9 +8,6 @@ from selfdrive.car.hyundai.values import Ecu, ECU_FINGERPRINT, CAR, FINGERPRINTS
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
 
-GearShifter = car.CarState.GearShifter
-ButtonType = car.CarState.ButtonEvent.Type
-
 class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController):
     self.CP = CP
@@ -39,14 +36,13 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=[]):
-
     ret = car.CarParams.new_message()
 
     ret.carName = "hyundai"
     ret.carFingerprint = candidate
     ret.isPandaBlack = has_relay
     ret.safetyModel = car.CarParams.SafetyModel.hyundai
-    ret.enableCruise = True  # stock acc
+    ret.radarOffCan = True
 
     ret.steerActuatorDelay = 0.15  # Default delay
     ret.steerRateCost = 0.45
@@ -194,9 +190,7 @@ class CarInterface(CarInterfaceBase):
 
     return ret
 
-  # returns a car.CarState
   def update(self, c, can_strings):
-    # ******************* do can recv *******************
     self.cp.update_strings(can_strings)
     self.cp2.update_strings(can_strings)
     self.cp_cam.update_strings(can_strings)
@@ -205,6 +199,7 @@ class CarInterface(CarInterfaceBase):
     # create message
     ret = car.CarState.new_message()
 
+    ret = self.CS.update(self.cp, self.cp_cam)
     ret.canValid = self.cp.can_valid and self.cp_cam.can_valid
 
     # speeds
@@ -271,6 +266,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.doorOpen = not self.CS.door_all_closed
     ret.seatbeltUnlatched = not self.CS.seatbelt
+
 
     # low speed steer alert hysteresis logic (only for cars with steer cut off above 10 m/s)
     if ret.vEgo < self.CP.minSteerSpeed and self.CP.minSteerSpeed > 10.:
