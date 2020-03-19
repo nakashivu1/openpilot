@@ -174,7 +174,6 @@ typedef struct UIScene {
   uint8_t networkStrength;
   int batteryPercent;
   char batteryStatus[64];
-  float freeSpace;
   uint8_t thermalStatus;
   int paTemp;
   int hwType;

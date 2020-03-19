@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
 
+#include <json.h>
 #include <czmq.h>
 
 #include "common/util.h"
@@ -477,6 +478,14 @@ void handle_message(UIState *s, Message * msg) {
     struct cereal_ThermalData datad;
     cereal_read_ThermalData(&datad, eventd.thermal);
 
+    s->scene.networkType = datad.networkType;
+    s->scene.networkStrength = datad.networkStrength;
+    s->scene.batteryPercent = datad.batteryPercent;
+    snprintf(s->scene.batteryStatus, sizeof(s->scene.batteryStatus), "%s", datad.batteryStatus.str);
+    s->scene.freeSpace = datad.freeSpace;
+    s->scene.thermalStatus = datad.thermalStatus;
+    s->scene.paTemp = datad.pa0;
+
     if (!datad.started) {
       update_status(s, STATUS_STOPPED);
     } else if (s->status == STATUS_STOPPED) {
@@ -502,6 +511,7 @@ void handle_message(UIState *s, Message * msg) {
     s->scene.maxBatTemp = datad.bat;
     s->scene.freeSpace = datad.freeSpace;
     //BBB END CPU TEMP
+
   } else if (eventd.which == cereal_Event_uiLayoutState) {
     struct cereal_UiLayoutState datad;
     cereal_read_UiLayoutState(&datad, eventd.uiLayoutState);
@@ -511,10 +521,15 @@ void handle_message(UIState *s, Message * msg) {
     struct cereal_LiveMapData datad;
     cereal_read_LiveMapData(&datad, eventd.liveMapData);
     s->scene.map_valid = datad.mapValid;
-    s->scene.speedlimit = datad.speedLimit;
-    s->scene.speedlimitahead_valid = datad.speedLimitAheadValid;
-    s->scene.speedlimitaheaddistance = datad.speedLimitAheadDistance;
-    s->scene.speedlimit_valid = datad.speedLimitValid;
+
+  } else if (eventd.which == cereal_Event_ubloxGnss) {
+    struct cereal_UbloxGnss datad;
+    cereal_read_UbloxGnss(&datad, eventd.ubloxGnss);
+    if (datad.which == cereal_UbloxGnss_measurementReport) {
+      struct cereal_UbloxGnss_MeasurementReport reportdatad;
+      cereal_read_UbloxGnss_MeasurementReport(&reportdatad, datad.measurementReport);
+      s->scene.satelliteCount = reportdatad.numMeas;
+    }
   } else if (eventd.which == cereal_Event_carState) {
     struct cereal_CarState datad;
     cereal_read_CarState(&datad, eventd.carState);
@@ -535,25 +550,6 @@ void handle_message(UIState *s, Message * msg) {
     else if (s->scene.gpsAccuracy == 0)
     {
       s->scene.gpsAccuracy = 99.8;
-    }
-  } else if (eventd.which == cereal_Event_thermal) {
-    struct cereal_ThermalData datad;
-    cereal_read_ThermalData(&datad, eventd.thermal);
-
-    s->scene.networkType = datad.networkType;
-    s->scene.networkStrength = datad.networkStrength;
-    s->scene.batteryPercent = datad.batteryPercent;
-    snprintf(s->scene.batteryStatus, sizeof(s->scene.batteryStatus), "%s", datad.batteryStatus.str);
-    s->scene.freeSpace = datad.freeSpace;
-    s->scene.thermalStatus = datad.thermalStatus;
-    s->scene.paTemp = datad.pa0;
-  } else if (eventd.which == cereal_Event_ubloxGnss) {
-    struct cereal_UbloxGnss datad;
-    cereal_read_UbloxGnss(&datad, eventd.ubloxGnss);
-    if (datad.which == cereal_UbloxGnss_measurementReport) {
-      struct cereal_UbloxGnss_MeasurementReport reportdatad;
-      cereal_read_UbloxGnss_MeasurementReport(&reportdatad, datad.measurementReport);
-      s->scene.satelliteCount = reportdatad.numMeas;
     }
   } else if (eventd.which == cereal_Event_health) {
     struct cereal_HealthData datad;
@@ -680,7 +676,7 @@ static void ui_update(UIState *s) {
     if (ret < 0) {
       if (errno == EINTR || errno == EAGAIN) continue;
 
-      LOGE("poll failed (%d - %d)", ret, errno);
+      LOGW("poll failed (%d)", ret);
       close(s->ipc_fd);
       s->ipc_fd = -1;
       s->vision_connected = false;
@@ -1027,13 +1023,6 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    //awake on any touch
-    int touch_x = -1, touch_y = -1;
-    int touched = touch_poll(&touch, &touch_x, &touch_y, s->awake ? 0 : 100);
-    if (touched == 1) {
-      set_awake(s, true);
-    }
-
     // manage wakefulness
     if (s->awake_timeout > 0) {
       s->awake_timeout--;
@@ -1044,7 +1033,8 @@ int main(int argc, char* argv[]) {
     // Don't waste resources on drawing in case screen is off or car is not started.
     if (s->awake && s->vision_connected) {
       dashcam(s, touch_x, touch_y);
-
+    }
+    
     // manage hardware disconnect
     if (s->hardware_timeout > 0) {
       s->hardware_timeout--;

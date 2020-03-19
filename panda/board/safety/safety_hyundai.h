@@ -40,7 +40,8 @@ static int hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
   bool valid = addr_safety_check(to_push, hyundai_rx_checks, HYUNDAI_RX_CHECK_LEN,
                                  NULL, NULL, NULL);
 
-  if (valid && GET_BUS(to_push) == 0) {
+  if (valid) {
+    int bus = GET_BUS(to_push);
     int addr = GET_ADDR(to_push);
 
     if (addr == 593) {
@@ -101,7 +102,7 @@ static int hyundai_rx_hook(CAN_FIFOMailBox_TypeDef *to_push) {
     // TODO: check gas pressed
 
     // check if stock camera ECU is on bus 0
-    if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (addr == 832)) {
+    if ((safety_mode_cnt > RELAY_TRNS_TIMEOUT) && (bus == 0) && (addr == 832)) {
       relay_malfunction = true;
     }
     // check if we have a LCAN on Bus1
