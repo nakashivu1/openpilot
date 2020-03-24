@@ -701,19 +701,18 @@ void TIM1_BRK_TIM9_IRQ_Handler(void) {
     if (heartbeat_counter >= (check_started() ? EON_HEARTBEAT_IGNITION_CNT_ON : EON_HEARTBEAT_IGNITION_CNT_OFF)) {
       puts("EON hasn't sent a heartbeat for 0x");
       puth(heartbeat_counter);
-      puts(" seconds. Safety is set to SILENT mode.\n");
+      puts(" seconds. Safety is set to ALLOUTPUT mode.\n");
       if (current_safety_mode != SAFETY_ALLOUTPUT) {
-        set_safety_mode(SAFETY_ALLOUTPUT, 0U); // MDPS will hard fault if SAFETY_NOOUTPUT
+        set_safety_mode(SAFETY_ALLOUTPUT, 0U); // MDPS will hard if SAFETY_NOOUTPUT
       }
+	 // MDPS will if panda sleep
+     // if (power_save_status != POWER_SAVE_STATUS_ENABLED) {
+     //   set_power_save_state(POWER_SAVE_STATUS_ENABLED);
+     // }
 
       // Also disable fan and IR when the heartbeat goes missing
       current_board->set_fan_power(0U);
       current_board->set_ir_power(0U);
-
-	 // MDPS will fault if panda sleep
-     // if (power_save_status != POWER_SAVE_STATUS_ENABLED) {
-     //   set_power_save_state(POWER_SAVE_STATUS_ENABLED);
-     // }
     }
 
     // enter CDP mode when car starts to ensure we are charging a turned off EON
@@ -809,7 +808,7 @@ int main(void) {
   // use TIM2->CNT to read
 
   // init to SILENT and can silent
-  set_safety_mode(SAFETY_ALLOUTPUT, 0); // MDPS will hard fault if SAFETY_NOOUTPUT
+  set_safety_mode(SAFETY_ALLOUTPUT, 0); // MDPS will hard if SAFETY_NOOUTPUT
 
   // enable CAN TXs
   current_board->enable_can_transcievers(true);
