@@ -66,8 +66,10 @@ def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
   # initialize to no line visible
   
   lane_visible = 1
-  if left_line and right_line:
-    if enabled:
+  if not button_on:
+    lane_visible = 0
+  elif left_line and right_line or hud_alert: #HUD alert only display when LKAS status is active
+    if enabled or hud_alert:
       lane_visible = 3
     else:
       lane_visible = 4
@@ -109,6 +111,8 @@ class CarController():
     # *** compute control surfaces ***
 
     # gas and brake
+    scc_active = enabled and self.longcontrol and CS.scc12["ACCMode"] == 1
+
     apply_accel = actuators.gas - actuators.brake
 
     apply_accel, self.accel_steady = accel_hysteresis(apply_accel, self.accel_steady)
@@ -187,11 +191,11 @@ class CarController():
     else: # send mdps12 to LKAS to prevent LKAS error if no cancel cmd
       can_sends.append(create_mdps12(self.packer, self.car_fingerprint, self.mdps12_cnt, CS.mdps12))
 
-    if CS.scc_bus and self.longcontrol and frame % 2: # send scc12 to car if SCC not on bus 0 and longcontrol enabled
-      can_sends.append(create_scc12(self.packer, apply_accel, enabled, self.scc12_cnt, CS.scc12))
+    if CS.scc_bus and frame % 2: # send scc12 to car if SCC not on bus 0 and longcontrol enabled
+      can_sends.append(create_scc12(self.packer, apply_accel, scc_active, self.scc12_cnt, CS.scc12))
       self.scc12_cnt += 1
 
-    if CS.out.cruiseState.standstill:
+    if CS.stopped:
       # run only first time when the car stopped
       if self.last_lead_distance == 0:
         # get the lead distance from the Radar
