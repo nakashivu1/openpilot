@@ -31,10 +31,18 @@ class HighAngleSteerLimitParams(SteerLimitParams):
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
 
-class HighSpeedSteerLimitParams(SteerLimitParams):
+class MidSpeedSteerLimitParams(SteerLimitParams):
   STEER_MAX = 150
   STEER_DELTA_UP = 2
   STEER_DELTA_DOWN = 7
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+
+class HighSpeedSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 408
+  STEER_DELTA_UP = 4
+  STEER_DELTA_DOWN = 8
   STEER_DRIVER_ALLOWANCE = 50
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
@@ -94,7 +102,9 @@ class CarController():
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
     elif CS.v_ego < 10 and abs(CS.angle_steers) > 83.:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighAngleSteerLimitParams)
-    elif CS.v_ego > 20 and abs(CS.angle_steers) < 5.:
+    elif CS.v_ego > 15 and CS.v_ego < 29 and abs(CS.angle_steers) < 5.:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, MidSpeedSteerLimitParams)
+    elif (CS.v_ego > 29 and abs(CS.angle_steers) < 10.) or (CS.v_ego > 9 and CS.v_ego < 29 and abs(CS.angle_steers) > 20.):
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighSpeedSteerLimitParams)
     else:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
@@ -111,7 +121,7 @@ class CarController():
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
     if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
       self.turning_signal_timer = 100
-    if ((CS.left_blinker_flash or CS.right_blinker_flash) and (CS.steer_override or abs(CS.angle_steers) > 15.) and CS.v_ego < 17.5):
+    if ((CS.left_blinker_flash or CS.right_blinker_flash) and (CS.steer_override or abs(CS.angle_steers) > 15.) and CS.v_ego < 13.0):
       self.turning_signal_timer = 100  # Disable for 1.0 Seconds after blinker turned off
     if self.turning_signal_timer:
       lkas_active = 0
