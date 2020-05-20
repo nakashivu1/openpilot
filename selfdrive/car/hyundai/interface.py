@@ -255,7 +255,7 @@ class CarInterface(CarInterfaceBase):
 #    if ret.steerWarning or abs(ret.steeringAngle) > 90.:
 #      events.append(create_event('steerTempUnavailable', [ET.NO_ENTRY, ET.WARNING]))
 
-    if ret.cruiseState.enabled and (not self.cruise_enabled_prev or ret.vEgo > self.CP.minEnableSpeed >= self.vEgo_prev):
+    if ret.cruiseState.enabled and (not self.CS.out.cruiseState.enabled or ret.vEgo > self.CP.minEnableSpeed >= self.vEgo_prev):
       events.append(create_event('pcmEnable', [ET.ENABLE]))
     elif not ret.cruiseState.enabled:
       events.append(create_event('pcmDisable', [ET.USER_DISABLE]))
