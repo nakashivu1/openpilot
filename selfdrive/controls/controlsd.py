@@ -36,7 +36,7 @@ HwType = log.HealthData.HwType
 
 LaneChangeState = log.PathPlan.LaneChangeState
 LaneChangeDirection = log.PathPlan.LaneChangeDirection
-
+LaneChangeBSM = log.PathPlan.LaneChangeBSM
 
 def add_lane_change_event(events, path_plan):
   if path_plan.laneChangeState == LaneChangeState.preLaneChange:
@@ -82,7 +82,8 @@ def data_sample(CI, CC, sm, can_sock, state, mismatch_counter, can_error_counter
   events += list(sm['dMonitoringState'].events)
   add_lane_change_event(events, sm['pathPlan'])
   enabled = isEnabled(state)
-
+  lane_change_bsm = sm['pathPlan'].laneChangeBSM
+  
   # Check for CAN timeout
   if not can_strs:
     can_error_counter += 1
@@ -93,6 +94,12 @@ def data_sample(CI, CC, sm, can_sock, state, mismatch_counter, can_error_counter
   low_battery = sm['thermal'].batteryPercent < 1 and sm['thermal'].chargingError  # at zero percent battery, while discharging, OP should not allowed
   mem_low = sm['thermal'].memUsedPercent > 90
 
+  #bsm alerts 
+  if lane_change_bsm == LaneChangeBSM.left:
+    events.append(create_event('preventLCA', [ET.WARNING])) 
+  if lane_change_bsm == LaneChangeBSM.right:
+    events.append(create_event('preventLCA', [ET.WARNING]))
+    
   # Create events for battery, temperature and disk space
   if low_battery:
     events.append(create_event('lowBattery', [ET.NO_ENTRY, ET.SOFT_DISABLE]))
@@ -272,19 +279,19 @@ def state_control(frame, rcv_frame, plan, path_plan, CS, CP, state, events, v_cr
   actuators.steer, actuators.steerAngle, lac_log = LaC.update(active, CS.vEgo, CS.steeringAngle, CS.steeringRate, CS.steeringTorqueEps, CS.steeringPressed, CS.steeringRateLimited, CP, path_plan)
 
   # Check for difference between desired angle and angle for angle based control
-  angle_control_saturated = CP.steerControlType == car.CarParams.SteerControlType.angle and \
-    abs(actuators.steerAngle - CS.steeringAngle) > STEER_ANGLE_SATURATION_THRESHOLD
+#  angle_control_saturated = CP.steerControlType == car.CarParams.SteerControlType.angle and \
+#    abs(actuators.steerAngle - CS.steeringAngle) > STEER_ANGLE_SATURATION_THRESHOLD
 
-  saturated_count = saturated_count + 1 if angle_control_saturated and not CS.steeringPressed and active else 0
+#  saturated_count = saturated_count + 1 if angle_control_saturated and not CS.steeringPressed and active else 0
 
   # Send a "steering required alert" if saturation count has reached the limit
-  if (lac_log.saturated and not CS.steeringPressed) or (saturated_count > STEER_ANGLE_SATURATION_TIMEOUT):
+#  if (lac_log.saturated and not CS.steeringPressed) or (saturated_count > STEER_ANGLE_SATURATION_TIMEOUT):
     # Check if we deviated from the path
-    left_deviation = actuators.steer > 0 and path_plan.dPoly[3] > 0.1
-    right_deviation = actuators.steer < 0 and path_plan.dPoly[3] < -0.1
+#    left_deviation = actuators.steer > 0 and path_plan.dPoly[3] > 0.1
+#    right_deviation = actuators.steer < 0 and path_plan.dPoly[3] < -0.1
 
-    if left_deviation or right_deviation:
-      AM.add(frame, "steerSaturated", enabled)
+#    if left_deviation or right_deviation:
+#      AM.add(frame, "steerSaturated", enabled)
 
   # Parse permanent warnings to display constantly
   for e in get_events(events, [ET.PERMANENT]):
@@ -564,10 +571,10 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
       events.append(create_event('canError', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
     if not sounds_available:
       events.append(create_event('soundsUnavailable', [ET.NO_ENTRY, ET.PERMANENT]))
-    if internet_needed:
-      events.append(create_event('internetConnectivityNeeded', [ET.NO_ENTRY, ET.PERMANENT]))
-    if community_feature_disallowed:
-      events.append(create_event('communityFeatureDisallowed', [ET.PERMANENT]))
+#    if internet_needed:
+#      events.append(create_event('internetConnectivityNeeded', [ET.NO_ENTRY, ET.PERMANENT]))
+#    if community_feature_disallowed:
+#      events.append(create_event('communityFeatureDisallowed', [ET.PERMANENT]))
     if read_only and not passive:
       events.append(create_event('carUnrecognized', [ET.PERMANENT]))
     if log.HealthData.FaultType.relayMalfunction in sm['health'].faults:
@@ -575,8 +582,8 @@ def controlsd_thread(sm=None, pm=None, can_sock=None):
 
 
     # Only allow engagement with brake pressed when stopped behind another stopped car
-    if CS.brakePressed and sm['plan'].vTargetFuture >= STARTING_TARGET_SPEED and not CP.radarOffCan and CS.vEgo < 0.3:
-      events.append(create_event('noTarget', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
+#    if CS.brakePressed and sm['plan'].vTargetFuture >= STARTING_TARGET_SPEED and not CP.radarOffCan and CS.vEgo < 0.3:
+#      events.append(create_event('noTarget', [ET.NO_ENTRY, ET.IMMEDIATE_DISABLE]))
 
     if not read_only:
       # update control state
