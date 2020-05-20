@@ -165,6 +165,7 @@ bool can_set_speed(uint8_t can_number) {
 void can_init_all(void) {
   bool ret = true;
   for (uint8_t i=0U; i < CAN_MAX; i++) {
+    can_clear(can_queues[i]);
     ret &= can_init(i);
   }
   UNUSED(ret);
@@ -229,6 +230,7 @@ void can_set_gmlan(uint8_t bus) {
 
 // TODO: remove
 void can_set_obd(uint8_t harness_orientation, bool obd){
+  obd = true;
   if(obd){
     puts("setting CAN2 to be OBD\n");
   } else {
@@ -394,7 +396,12 @@ void can_rx(uint8_t can_number) {
       to_send.RDTR = to_push.RDTR;
       to_send.RDLR = to_push.RDLR;
       to_send.RDHR = to_push.RDHR;
-      can_send(&to_send, bus_fwd_num, true);
+      if (bus_fwd_num > 9) {
+        can_send(&to_send, (bus_fwd_num / 10), true);
+        can_send(&to_send, (bus_fwd_num % 10), true);
+      } else {
+        can_send(&to_send, bus_fwd_num, true);
+      }
     }
 
     can_rx_errs += safety_rx_hook(&to_push) ? 0U : 1U;

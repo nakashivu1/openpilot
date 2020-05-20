@@ -13,8 +13,6 @@ from selfdrive.controls.lib.speed_smoother import speed_smoother
 from selfdrive.controls.lib.longcontrol import LongCtrlState, MIN_CAN_SPEED
 from selfdrive.controls.lib.fcw import FCWChecker
 from selfdrive.controls.lib.long_mpc import LongitudinalMpc
-from selfdrive.kegman_conf import kegman_conf
-
 
 MAX_SPEED = 255.0
 
@@ -87,8 +85,6 @@ class Planner():
     self.path_x = np.arange(192)
 
     self.params = Params()
-    self.kegman = kegman_conf()
-    self.mpc_frame = 0
     self.first_loop = True
 
   def choose_solution(self, v_cruise_setpoint, enabled):
@@ -134,13 +130,7 @@ class Planner():
     enabled = (long_control_state == LongCtrlState.pid) or (long_control_state == LongCtrlState.stopping)
     following = lead_1.status and lead_1.dRel < 45.0 and lead_1.vLeadK > v_ego and lead_1.aLeadK > 0.0
 
-    if self.mpc_frame % 1000 == 0:
-      self.kegman = kegman_conf()
-      self.mpc_frame = 0
-      
-    self.mpc_frame += 1
-    
-    if len(sm['model'].path.poly) and int(self.kegman.conf['slowOnCurves']):
+    if len(sm['model'].path.poly):
       path = list(sm['model'].path.poly)
 
       # Curvature of polynomial https://en.wikipedia.org/wiki/Curvature#Curvature_of_the_graph_of_a_function
