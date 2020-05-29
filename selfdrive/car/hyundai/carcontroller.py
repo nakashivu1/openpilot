@@ -146,7 +146,7 @@ class CarController():
     if self.car_fingerprint == CAR.GENESIS:
       lkas_active = enabled and not self.lkas_button and abs(CS.angle_steers) < 91.
     else:
-      lkas_active = enabled and not self.lkas_button
+      lkas_active = enabled and self.lkas_button
 
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
     if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
