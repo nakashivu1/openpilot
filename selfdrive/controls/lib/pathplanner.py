@@ -203,7 +203,7 @@ class PathPlanner():
     self.cur_state = calc_states_after_delay(self.cur_state, v_ego, angle_steers - angle_offset, curvature_factor, VM.sR, CP.steerActuatorDelay)
 
     if v_ego < 9.0 or (v_ego > 27.0 and abs(angle_steers) < 10) or (abs(angle_steers - angle_offset) > 20 and v_ego < 27.0):
-      self.cur_state[0].delta = math.radians(angle_steers - angle_offset) / self.steerRatio
+      self.cur_state[0].delta = math.radians(angle_steers - angle_offset) / VM.sR
 
     v_ego_mpc = max(v_ego, 5.0)  # avoid mpc roughness due to low speed
     self.libmpc.run_mpc(self.cur_state, self.mpc_solution,
