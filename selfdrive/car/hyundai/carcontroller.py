@@ -47,6 +47,14 @@ class HighSpeedSteerLimitParams(SteerLimitParams):
   STEER_DRIVER_MULTIPLIER = 2
   STEER_DRIVER_FACTOR = 1
 
+class ElantraSteerLimitParams(SteerLimitParams):
+  STEER_MAX = 280
+  STEER_DELTA_UP = 2
+  STEER_DELTA_DOWN = 5
+  STEER_DRIVER_ALLOWANCE = 50
+  STEER_DRIVER_MULTIPLIER = 2
+  STEER_DRIVER_FACTOR = 1
+
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
 def process_hud_alert(enabled, button_on, fingerprint, visual_alert, left_line,
@@ -98,7 +106,9 @@ class CarController():
 
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
-    if CS.v_ego < 10 and not abs(CS.angle_steers) > 83.:
+    if self.car_fingerprint == CAR.ELANTRA:
+      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, ElantraSteerLimitParams)
+    elif CS.v_ego < 10 and not abs(CS.angle_steers) > 83.:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, LowSpeedSteerLimitParams)
     elif CS.v_ego < 10 and abs(CS.angle_steers) > 83.:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighAngleSteerLimitParams)
@@ -116,7 +126,10 @@ class CarController():
         self.lkas_button = not self.lkas_button
       self.lkas_button_last = CS.lkas_button_on
 
-    lkas_active = enabled and abs(CS.angle_steers) < 90. and not self.lkas_button
+    if self.car_fingerprint == CAR.ELANTRA:
+      lkas_active = enabled and self.lkas_button
+    else:
+      lkas_active = enabled and abs(CS.angle_steers) < 90. and not self.lkas_button
 
     # Fix for sharp turns mdps fault and Genesis hard fault at low speed
     if CS.v_ego < 13.7 and self.car_fingerprint == CAR.GENESIS and not CS.mdps_bus:
