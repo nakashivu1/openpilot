@@ -82,7 +82,7 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 13.73   #Spec
       tire_stiffness_factor = 0.685
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.10], [0.02]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.11], [0.02]]
       ret.minSteerSpeed = 32 * CV.MPH_TO_MS
       ret.minEnableSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
@@ -320,7 +320,7 @@ class CarInterface(CarInterfaceBase):
     if self.turning_indicator_alert:
       events.append(create_event('turningIndicatorOn', [ET.WARNING]))
 
-    if self.lkas_button_alert:
+    if self.lkas_button_alert and not self.CP.carFingerprint == CAR.ELANTRA:
       events.append(create_event('lkasButtonOff', [ET.WARNING]))
     if ret.rightBlinker and ret.lcaRight and self.CS.v_ego > (35 * CV.MPH_TO_MS):
       events.append(create_event('rightLCAbsm', [ET.WARNING]))
