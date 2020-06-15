@@ -8,6 +8,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.controls.lib.events import Events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
+from common.travis_checker import travis
 
 GearShifter = car.CarState.GearShifter
 EventName = car.CarEvent.EventName
@@ -17,6 +18,8 @@ MAX_CTRL_SPEED = (V_CRUISE_MAX + 4) * CV.KPH_TO_MS # 144 + 4 = 92 mph
 
 class CarInterfaceBase():
   def __init__(self, CP, CarController, CarState):
+    self.waiting = False
+    self.keep_openpilot_engaged = True
     self.CP = CP
     self.VM = VehicleModel(CP)
 
@@ -26,6 +29,10 @@ class CarInterfaceBase():
     if CarState is not None:
       self.CS = CarState(CP)
       self.cp = self.CS.get_can_parser(CP)
+      try:
+        self.cp_init = self.CS.get_can_parser_init(CP)
+      except AttributeError:
+        self.cp_init = self.CS.get_can_parser(CP)
       self.cp_cam = self.CS.get_cam_can_parser(CP)
 
     self.CC = None
@@ -85,11 +92,19 @@ class CarInterfaceBase():
     raise NotImplementedError
 
   def create_common_events(self, cs_out, extra_gears=[], gas_resume_speed=-1, pcm_enable=True):
+    if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled:  # this lets us modularize which checks we want to turn off op if cc was engaged previoiusly or not
+      disengage_event = True
+    else:
+      if travis:
+        disengage_event = True
+      else:
+        disengage_event = False
+
     events = Events()
 
-    if cs_out.doorOpen:
+    if cs_out.doorOpen and disengage_event:
       events.add(EventName.doorOpen)
-    if cs_out.seatbeltUnlatched:
+    if cs_out.seatbeltUnlatched and disengage_event:
       events.add(EventName.seatbeltNotLatched)
     if cs_out.gearShifter != GearShifter.drive and cs_out.gearShifter not in extra_gears:
       events.add(EventName.wrongGear)
@@ -99,7 +114,7 @@ class CarInterfaceBase():
       events.add(EventName.wrongCarMode)
     if cs_out.espDisabled:
       events.add(EventName.espDisabled)
-    if cs_out.gasPressed:
+    if cs_out.gasPressed and disengage_event:
       events.add(EventName.gasPressed)
     if cs_out.stockFcw:
       events.add(EventName.stockFcw)
@@ -116,8 +131,8 @@ class CarInterfaceBase():
     # Disable on rising edge of gas or brake. Also disable on brake when speed > 0.
     # Optionally allow to press gas at zero speed to resume.
     # e.g. Chrysler does not spam the resume button yet, so resuming with gas is handy. FIXME!
-    if (cs_out.gasPressed and (not self.CS.out.gasPressed) and cs_out.vEgo > gas_resume_speed) or \
-       (cs_out.brakePressed and (not self.CS.out.brakePressed or not cs_out.standstill)):
+    if disengage_event and ((cs_out.gasPressed and (not self.CS.out.gasPressed) and cs_out.vEgo > gas_resume_speed) or \
+       (cs_out.brakePressed and (not self.CS.out.brakePressed or not cs_out.standstill))):
       events.add(EventName.pedalPressed)
 
     # we engage when pcm is active (rising edge)
