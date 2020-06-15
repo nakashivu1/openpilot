@@ -59,9 +59,6 @@ def get_can_parser(CP):
     ("CF_Lca_IndLeft", "LCA11", 0),
     ("CF_Lca_IndRight", "LCA11", 0),
 
-    ("SAS_Angle", "SAS11", 0),
-    ("SAS_Speed", "SAS11", 0),
-
   ]
 
   checks = [
@@ -73,26 +70,33 @@ def get_can_parser(CP):
     ("CGW1", 10),
     ("CGW4", 5),
     ("WHL_SPD11", 50),
-    ("SAS11", 100)
   ]
   if not CP.mdpsBus:
     signals += [
-    ("CR_Mdps_StrColTq", "MDPS12", 0),
-    ("CF_Mdps_Def", "MDPS12", 0),
-    ("CF_Mdps_ToiActive", "MDPS12", 0),
-    ("CF_Mdps_ToiUnavail", "MDPS12", 0),
-    ("CF_Mdps_MsgCount2", "MDPS12", 0),
-    ("CF_Mdps_Chksum2", "MDPS12", 0),
-    ("CF_Mdps_ToiFlt", "MDPS12", 0),
-    ("CF_Mdps_SErr", "MDPS12", 0),
-    ("CR_Mdps_StrTq", "MDPS12", 0),
-    ("CF_Mdps_FailStat", "MDPS12", 0),
-    ("CR_Mdps_OutTq", "MDPS12", 0)
+      ("CR_Mdps_StrColTq", "MDPS12", 0),
+      ("CF_Mdps_Def", "MDPS12", 0),
+      ("CF_Mdps_ToiActive", "MDPS12", 0),
+      ("CF_Mdps_ToiUnavail", "MDPS12", 0),
+      ("CF_Mdps_MsgCount2", "MDPS12", 0),
+      ("CF_Mdps_Chksum2", "MDPS12", 0),
+      ("CF_Mdps_ToiFlt", "MDPS12", 0),
+      ("CF_Mdps_SErr", "MDPS12", 0),
+      ("CR_Mdps_StrTq", "MDPS12", 0),
+      ("CF_Mdps_FailStat", "MDPS12", 0),
+      ("CR_Mdps_OutTq", "MDPS12", 0)
     ]
     checks += [
       ("MDPS12", 50)
     ]
-  if CP.carFingerprint in FEATURES["non_scc"]:
+  if not CP.sasBus:
+    signals += [
+      ("SAS_Angle", "SAS11", 0),
+      ("SAS_Speed", "SAS11", 0),
+    ]
+    checks += [
+      ("SAS11", 100)
+    ]
+  if CP.sccBus == -1:
     signals += [
       ("CRUISE_LAMP_M", "EMS16", 0),
       ("CF_Lvr_CruiseSet", "LVR12", 0),
@@ -158,22 +162,30 @@ def get_can2_parser(CP):
   checks = []
   if CP.mdpsBus == 1:
     signals += [
-    ("CR_Mdps_StrColTq", "MDPS12", 0),
-    ("CF_Mdps_Def", "MDPS12", 0),
-    ("CF_Mdps_ToiActive", "MDPS12", 0),
-    ("CF_Mdps_ToiUnavail", "MDPS12", 0),
-    ("CF_Mdps_MsgCount2", "MDPS12", 0),
-    ("CF_Mdps_Chksum2", "MDPS12", 0),
-    ("CF_Mdps_ToiFlt", "MDPS12", 0),
-    ("CF_Mdps_SErr", "MDPS12", 0),
-    ("CR_Mdps_StrTq", "MDPS12", 0),
-    ("CF_Mdps_FailStat", "MDPS12", 0),
-    ("CR_Mdps_OutTq", "MDPS12", 0)
+      ("CR_Mdps_StrColTq", "MDPS12", 0),
+      ("CF_Mdps_Def", "MDPS12", 0),
+      ("CF_Mdps_ToiActive", "MDPS12", 0),
+      ("CF_Mdps_ToiUnavail", "MDPS12", 0),
+      ("CF_Mdps_MsgCount2", "MDPS12", 0),
+      ("CF_Mdps_Chksum2", "MDPS12", 0),
+      ("CF_Mdps_ToiFlt", "MDPS12", 0),
+      ("CF_Mdps_SErr", "MDPS12", 0),
+      ("CR_Mdps_StrTq", "MDPS12", 0),
+      ("CF_Mdps_FailStat", "MDPS12", 0),
+      ("CR_Mdps_OutTq", "MDPS12", 0)
     ]
     checks += [
       ("MDPS12", 50)
     ]
-  if CP.carFingerprint not in FEATURES["non_scc"] and CP.sccBus == 1:
+  if CP.sasBus == 1:
+    signals += [
+      ("SAS_Angle", "SAS11", 0),
+      ("SAS_Speed", "SAS11", 0),
+    ]
+    checks += [
+      ("SAS11", 100)
+    ]
+  if CP.sccBus == 1:
     signals += [
       ("MainMode_ACC", "SCC11", 0),
       ("VSetDis", "SCC11", 0),
@@ -234,7 +246,7 @@ def get_camera_parser(CP):
   ]
 
   checks = []
-  if CP.carFingerprint not in FEATURES["non_scc"] and CP.sccBus == 2:
+  if CP.sccBus == 2:
     signals += [
       ("MainMode_ACC", "SCC11", 0),
       ("VSetDis", "SCC11", 0),
@@ -299,13 +311,15 @@ class CarState():
     self.right_blinker_flash_cnt = 0
     self.lca_left = 0
     self.lca_right = 0
-    self.no_radar = CP.carFingerprint in FEATURES["non_scc"]
+    self.no_radar = CP.sccBus == -1
     self.mdps_bus = CP.mdpsBus
+    self.sas_bus = CP.sasBus
     self.scc_bus = CP.sccBus
 
   def update(self, cp, cp2, cp_cam):
 
     cp_mdps = cp2 if self.mdps_bus else cp
+    cp_sas = cp2 if self.sas_bus else cp
     cp_scc = cp2 if self.scc_bus == 1 else cp_cam if self.scc_bus == 2 else cp
 
     # update prevs, update must run once per Loop
@@ -350,8 +364,8 @@ class CarState():
                                          (cp.vl["LVR12"]["CF_Lvr_CruiseSet"] * speed_conv)
     self.standstill = not v_wheel > 0.1
 
-    self.angle_steers = cp.vl["SAS11"]['SAS_Angle']
-    self.angle_steers_rate = cp.vl["SAS11"]['SAS_Speed']
+    self.angle_steers = cp_sas.vl["SAS11"]['SAS_Angle']
+    self.angle_steers_rate = cp_sas.vl["SAS11"]['SAS_Speed']
     self.yaw_rate = cp.vl["ESP12"]['YAW_RATE']
     
     self.left_blinker_on_cnt = 50 if cp.vl["CGW1"]['CF_Gway_TSigLHSw'] else max(self.left_blinker_on_cnt - 1, 0)
