@@ -13,8 +13,8 @@ min_set_speed = 30 * CV.KPH_TO_MS
 
 # Accel limits
 ACCEL_HYST_GAP = 0.02  # don't change accel command for small oscilalitons within this value
-ACCEL_MAX = 1.5  # 1.5 m/s2
-ACCEL_MIN = -3.0 # 3   m/s2
+ACCEL_MAX = 2.0  # 1.5 m/s2
+ACCEL_MIN = -5.0 # 3   m/s2
 ACCEL_SCALE = max(ACCEL_MAX, -ACCEL_MIN)
 
 def accel_hysteresis(accel, accel_steady):
@@ -86,15 +86,15 @@ class CarController():
     apply_accel = clip(apply_accel * ACCEL_SCALE, ACCEL_MIN, ACCEL_MAX)
 
     if CS.CP.enableGasInterceptor:
-      if CS.pedal_gas > 15.0:
+      if CS.out.gasPressed:
         apply_accel = max(apply_accel, 0.06)
-      if CS.brake_pressed:
+      if CS.out.brakePressed:
         apply_gas = 0.0
         apply_accel = min(apply_accel, 0.00)
     else:
-      if CS.pedal_gas > 0.0:
+      if CS.out.gasPressed:
         apply_accel = max(apply_accel, 0.0)
-      if CS.brake_pressed and CS.v_ego > 1:
+      if CS.out.brakePressed and CS.out.vEgo > 1:
         apply_accel = min(apply_accel, 0.0)
 
     # Steering Torque
