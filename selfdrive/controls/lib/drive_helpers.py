@@ -8,11 +8,14 @@ ButtonCnt = 0
 LongPressed = False
 
 # kph
-V_CRUISE_MAX = 144
-V_CRUISE_MIN = 3.3
-V_CRUISE_DELTA_MI = 5 * CV.MPH_TO_KPH
-V_CRUISE_DELTA_KM = 10
-V_CRUISE_ENABLE_MIN = 8
+FIRST_PRESS_TIME = 1
+LONG_PRESS_TIME = 50
+
+V_CRUISE_MAX = 177
+V_CRUISE_MIN = 2 * CV.MPH_TO_KPH
+V_CRUISE_LONG_PRESS_DELTA_MPH = 5
+V_CRUISE_LONG_PRESS_DELTA_KPH = 10
+V_CRUISE_ENABLE_MIN = 5 * CV.MPH_TO_KPH
 
 
 class MPC_COST_LAT:
@@ -45,34 +48,42 @@ def update_v_cruise(v_cruise_kph, buttonEvents, enabled, metric):
     if ButtonCnt:
       ButtonCnt += 1
     for b in buttonEvents:
-      if b.pressed and not ButtonCnt and (b.type == ButtonType.accelCruise or \
+      if b.pressed and not ButtonCnt and (b.type == ButtonType.accelCruise or
                                           b.type == ButtonType.decelCruise):
-        ButtonCnt = 1
+        ButtonCnt = FIRST_PRESS_TIME
         ButtonPrev = b.type
-      elif not b.pressed and ButtonCnt:
-        if not LongPressed and b.type == ButtonType.accelCruise:
-          v_cruise_kph += 1 if metric else 1 * CV.MPH_TO_KPH
-        elif not LongPressed and b.type == ButtonType.decelCruise:
-          v_cruise_kph -= 1 if metric else 1 * CV.MPH_TO_KPH
+      elif not b.pressed:
         LongPressed = False
         ButtonCnt = 0
-    if ButtonCnt > 50:
-      LongPressed = True
-      V_CRUISE_DELTA = V_CRUISE_DELTA_KM if metric else V_CRUISE_DELTA_MI
-      if ButtonPrev == ButtonType.accelCruise:
-        v_cruise_kph += V_CRUISE_DELTA - v_cruise_kph % V_CRUISE_DELTA
-      elif ButtonPrev == ButtonType.decelCruise:
-        v_cruise_kph -= V_CRUISE_DELTA - -v_cruise_kph % V_CRUISE_DELTA
-      ButtonCnt %= 50
-    v_cruise_kph = clip(v_cruise_kph, V_CRUISE_MIN, V_CRUISE_MAX)
 
+    v_cruise = v_cruise_kph if metric else int(round(v_cruise_kph * CV.KPH_TO_MPH))
+    if ButtonCnt > LONG_PRESS_TIME:
+      LongPressed = True
+      V_CRUISE_DELTA = V_CRUISE_LONG_PRESS_DELTA_KPH if metric else V_CRUISE_LONG_PRESS_DELTA_MPH
+      if ButtonPrev == ButtonType.accelCruise:
+        v_cruise += V_CRUISE_DELTA - v_cruise % V_CRUISE_DELTA
+      elif ButtonPrev == ButtonType.decelCruise:
+        v_cruise -= V_CRUISE_DELTA - -v_cruise % V_CRUISE_DELTA
+      ButtonCnt = FIRST_PRESS_TIME
+    elif ButtonCnt == FIRST_PRESS_TIME and not LongPressed:
+      if ButtonPrev == ButtonType.accelCruise:
+        v_cruise += 1
+      elif ButtonPrev == ButtonType.decelCruise:
+        v_cruise -= 1
+
+    v_cruise_min = V_CRUISE_MIN if metric else V_CRUISE_MIN * CV.KPH_TO_MPH
+    v_cruise_max = V_CRUISE_MAX if metric else V_CRUISE_MAX * CV.KPH_TO_MPH
+
+    v_cruise = clip(v_cruise, v_cruise_min, v_cruise_max)
+    v_cruise_kph = v_cruise if metric else v_cruise * CV.MPH_TO_KPH
+
+    v_cruise_kph = int(round(v_cruise_kph))
   return v_cruise_kph
 
 
 def initialize_v_cruise(v_ego, buttonEvents, v_cruise_last):
   for b in buttonEvents:
     # 250kph or above probably means we never had a set speed
-    if b.type == ButtonType.accelCruise and v_cruise_last < 250:
-      return v_cruise_last
-
+    if b.type == ButtonType.accelCruise  and not b.pressed and v_cruise_last < 250:
+      return v_cruise_last                                        # no button info coming here possibly because this is disable state- investigate
   return int(round(clip(v_ego * CV.MS_TO_KPH, V_CRUISE_ENABLE_MIN, V_CRUISE_MAX)))

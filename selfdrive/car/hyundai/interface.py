@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from numpy import interp
+
 from cereal import car
 from selfdrive.config import Conversions as CV
 from selfdrive.car.hyundai.values import Ecu, ECU_FINGERPRINT, CAR, FINGERPRINTS, Buttons
@@ -18,7 +20,14 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def compute_gb(accel, speed):
-    return float(accel) / 10.0
+#   cgb_BP = [0., 5., 40.]  # speed break point
+#    cgb_Af = [1., 1., 1.]  # accel factor based on speed
+
+    # keep accel factor 1. tune if necessary
+
+#    accel_factor = interp(speed, cgb_BP, cgb_Af)
+
+    return float(accel) / 8.0 #* accel_factor
 
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=[]):
@@ -42,8 +51,8 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kiV = [.065, .05, .05]
     ret.longitudinalTuning.deadzoneBP = [0., 5.,  40.]
     ret.longitudinalTuning.deadzoneV = [0.08, 0.12, 0.15]
-    ret.gasMaxBP = [0., 1., 5., 40.]
-    ret.gasMaxV = [.1, .12, .14, .1]
+    ret.gasMaxBP = [0., 1., 1.1, 15., 40.]
+    ret.gasMaxV = [.12, .24, .2, .168, .13]
     ret.brakeMaxBP = [0., 5., 5.1]
     ret.brakeMaxV = [1., 1., 0.5]  # safety limits to stop unintended deceleration
 
@@ -295,6 +304,7 @@ class CarInterface(CarInterfaceBase):
       be.type = ButtonType.altButton3
       be.pressed = bool(self.CS.cruise_main_button)
       buttonEvents.append(be)
+
     ret.buttonEvents = buttonEvents
 
     events = self.create_common_events(ret)
