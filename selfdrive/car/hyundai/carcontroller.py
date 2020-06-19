@@ -104,7 +104,7 @@ class CarController():
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighAngleSteerLimitParams)
     elif CS.v_ego > 15 and CS.v_ego < 29 and abs(CS.angle_steers) < 5.:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, MidSpeedSteerLimitParams)
-    elif (CS.v_ego > 29 and abs(CS.angle_steers) < 10.) or (CS.v_ego > 9 and CS.v_ego < 29 and abs(CS.angle_steers) > 20.):
+    elif (CS.v_ego > 30 and abs(CS.angle_steers) < 4.) or (CS.v_ego > 9 and CS.v_ego < 29 and abs(CS.angle_steers) > 20.):
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, HighSpeedSteerLimitParams)
     else:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)
