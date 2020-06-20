@@ -51,7 +51,7 @@ class CarInterface(CarInterfaceBase):
     ret.enableCruise = True  # stock acc
 
     ret.steerActuatorDelay = 0.15  # Default delay
-    ret.steerRateCost = 0.50
+    ret.steerRateCost = 0.45
     ret.steerLimitTimer = 0.4
     tire_stiffness_factor = 0.7
 
@@ -76,8 +76,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.25], [0.05]]
       ret.minSteerSpeed = 0.
     elif candidate in [CAR.ELANTRA, CAR.ELANTRA_GT_I30]:
-   #   ret.lateralTuning.pid.kf = 0.00005
-#      ret.lateralTuning.pid.kf = 0.00006
+#      ret.lateralTuning.pid.kf = 0.00005
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 3.0
       ret.lateralTuning.indi.outerLoopGain = 2.0
@@ -85,10 +84,10 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.indi.actuatorEffectiveness = 1.0
       ret.mass = 1275. + STD_CARGO_KG
       ret.wheelbase = 2.7
-      ret.steerRatio = 13.73   #Spec
+      ret.steerRatio = 12.5 
       tire_stiffness_factor = 0.685
-    #  ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-     # ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.11], [0.02]]
+#      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
+#      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.11], [0.02]]
       ret.minSteerSpeed = 32 * CV.MPH_TO_MS
       ret.minEnableSpeed = 32 * CV.MPH_TO_MS
     elif candidate == CAR.GENESIS:
