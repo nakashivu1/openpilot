@@ -217,7 +217,7 @@ class PathPlanner():
         #self.lane_change_state = LaneChangeState.laneChangeFinishing
 
       # finishing
-      elif self.lane_change_state == LaneChangeState.laneChangeFinishing and lane_change_prob < 0.2:
+      elif self.lane_change_state == LaneChangeState.laneChangeFinishing and lane_change_prob < 0.4:
         if one_blinker:
           self.lane_change_state = LaneChangeState.preLaneChange
         else:
@@ -248,7 +248,7 @@ class PathPlanner():
     if desire == log.PathPlan.Desire.laneChangeRight or desire == log.PathPlan.Desire.laneChangeLeft:
       self.LP.l_prob = 0.
       self.LP.r_prob = 0.
-      self.libmpc.init_weights(MPC_COST_LAT.PATH / 10.0, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.steer_rate_cost)
+      self.libmpc.init_weights(MPC_COST_LAT.PATH / 3.0, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.steer_rate_cost)
     else:
       self.libmpc.init_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.LANE, MPC_COST_LAT.HEADING, self.steer_rate_cost)
 

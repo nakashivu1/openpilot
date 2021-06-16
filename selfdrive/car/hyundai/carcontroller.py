@@ -9,7 +9,7 @@ from opendbc.can.packer import CANPacker
 # Steer torque limits
 
 class SteerLimitParams:
-  STEER_MAX = 280   # 409 is the max, 255 is stock
+  STEER_MAX = 275   # 409 is the max, 255 is stock
   STEER_DELTA_UP = 2
   STEER_DELTA_DOWN = 4
   STEER_DRIVER_ALLOWANCE = 50
@@ -76,7 +76,7 @@ class CarController():
 
     ### Steering Torque
     new_steer = actuators.steer * SteerLimitParams.STEER_MAX
-    if CS.v_ego > 15 and abs(CS.angle_steers) < 5.:
+    if CS.v_ego > 1 and abs(CS.angle_steers) < 5.:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, MidSpeedSteerLimitParams)
     else:
       apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.steer_torque_driver, SteerLimitParams)

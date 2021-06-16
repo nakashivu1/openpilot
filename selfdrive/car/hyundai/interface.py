@@ -50,7 +50,7 @@ class CarInterface(CarInterfaceBase):
     ret.safetyModel = car.CarParams.SafetyModel.hyundai
     ret.enableCruise = True  # stock acc
 
-    ret.steerActuatorDelay = 0.15  # Default delay
+    ret.steerActuatorDelay = 0.20  # Default delay
     ret.steerRateCost = 0.45
     ret.steerLimitTimer = 0.4
     tire_stiffness_factor = 0.7
@@ -79,7 +79,7 @@ class CarInterface(CarInterfaceBase):
 #      ret.lateralTuning.pid.kf = 0.00005
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 3.0
-      ret.lateralTuning.indi.outerLoopGain = 2.0
+      ret.lateralTuning.indi.outerLoopGain = 2.4
       ret.lateralTuning.indi.timeConstant = 1.0
       ret.lateralTuning.indi.actuatorEffectiveness = 1.0
       ret.mass = 1275. + STD_CARGO_KG
