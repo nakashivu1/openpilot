@@ -51,7 +51,7 @@ class LatControlPID():
       pid_log.active = False
       self.pid.reset()
     else:
-      if not steer_override and (v_ego < 9.0 or (v_ego > 30.0 and abs(angle_steers) < 4) or (abs(angle_steers) > 20 and v_ego < 27.0)):
+      if not steer_override and (v_ego < 9.0 or (v_ego > 41.0 and abs(angle_steers) < 2.5) or (abs(angle_steers) > 20 and v_ego < 21.0)):
         self.angle_rate_des = angle_steers_rate / 100.
         self.angle_steers_des = path_plan.angleSteers
       else:

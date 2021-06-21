@@ -70,7 +70,7 @@ ALERTS = [
       "LKAS button off",
       "",
       AlertStatus.userPrompt, AlertSize.small,
-      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.none, 0., 0., .2),
+      Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.chimeError, 1., 0., .2),
 
   # Miscellaneous alerts
   Alert(
